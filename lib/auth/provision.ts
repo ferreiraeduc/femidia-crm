@@ -63,7 +63,7 @@ export async function ensureTenantForUser(
         slug,
         display_name: orgName,
         legal_name: orgName,
-        status: "active",
+        status: "pending",
         created_by: user.id,
       })
       .select("id, slug")

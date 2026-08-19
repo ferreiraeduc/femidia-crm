@@ -12,7 +12,7 @@ import { randomUUID } from "node:crypto";
 
 const querySchema = z.object({
   q: z.string().optional(),
-  status: z.enum(["active", "suspended", "onboarding", "redacted"]).optional(),
+  status: z.enum(["active", "suspended", "onboarding", "redacted", "pending", "rejected"]).optional(),
   cursor: z.string().optional(),
   limit: z.coerce.number().int().min(1).max(100).default(30),
 });
