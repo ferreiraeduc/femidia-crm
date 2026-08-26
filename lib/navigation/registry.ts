@@ -381,6 +381,15 @@ export const NAV_DESTINATIONS: NavDestination[] = [
     minRole: "manager",
     sidebar: true,
   },
+  {
+    href: "/app/broadcast",
+    label: "Disparo em massa",
+    description: "Envie mensagens WhatsApp para uma lista de contatos com throttle anti-ban.",
+    icon: PaperPlaneTilt,
+    group: "canais",
+    minRole: "manager",
+    sidebar: true,
+  },
 
   // ---- Análise — olhar o sistema funcionando ----
   {
