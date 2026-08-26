@@ -25,8 +25,13 @@ const contactSchema = z.object({
 const createSchema = z.object({
   name: z.string().min(1).max(200),
   message_text: z.string().min(1).max(4096),
+  message_variants: z.array(z.string().min(1).max(4096)).min(1).max(20).optional(),
   channel_session_id: z.string().uuid(),
+  channel_session_ids: z.array(z.string().uuid()).min(1).max(10).optional(),
   contacts: z.array(contactSchema).min(1).max(50000),
+  daily_limit: z.number().int().min(10).max(5000).optional(),
+  throttle_min_ms: z.number().int().min(3000).max(60000).optional(),
+  throttle_max_ms: z.number().int().min(5000).max(120000).optional(),
 });
 
 // ── POST — Criar broadcast ──────────────────────────────────────────────────
@@ -53,7 +58,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     });
   }
 
-  const { name, message_text, channel_session_id, contacts } = parsed.data;
+  const { name, message_text, channel_session_id, contacts, message_variants, channel_session_ids, daily_limit, throttle_min_ms, throttle_max_ms } = parsed.data;
 
   const supabase = await createClient();
 
@@ -76,9 +81,14 @@ export async function POST(req: NextRequest): Promise<Response> {
       organization_id: org.orgId,
       name,
       message_text,
+      message_variants: message_variants ?? [message_text],
       channel_session_id,
+      channel_session_ids: channel_session_ids ?? [channel_session_id],
       total_contacts: contacts.length,
       created_by_user_id: user.id,
+      daily_limit: daily_limit ?? 100,
+      throttle_min_ms: throttle_min_ms ?? 8000,
+      throttle_max_ms: throttle_max_ms ?? 20000,
     })
     .select("*")
     .single();

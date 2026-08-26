@@ -1,18 +1,13 @@
 /**
- * POST /api/v1/cron/broadcast-dispatcher — Cron 1×/min. Processa lote de contatos
- * pendentes em broadcasts ativos (status = 'running'). Envia uma mensagem de texto
- * via WAHA para cada contato, respeitando throttle (5s/msg — regra de campanha).
+ * POST /api/v1/cron/broadcast-dispatcher — Cron 1×/min.
  *
- * Lógica:
- *  1. Busca broadcasts com status = 'running'
- *  2. Para cada, pega N contatos com status = 'pending' (batch de 10 por rodada)
- *  3. Para cada contato: resolve chatId, envia via WAHA, marca status
- *  4. Ao terminar todos os pending, marca broadcast como 'completed'
+ * Processa broadcasts ativos com:
+ * - Spinning de copy (sorteia variação pra cada lead)
+ * - Rotação de números (alterna entre canais a cada envio)
+ * - Timer randômico (8-20s padrão, configurável)
+ * - Limite diário (respeita daily_limit, reseta à meia-noite)
  *
- * Throttle: 1 msg / 5s (regra do CLAUDE.md pra campanha = 12 msgs/min).
- * Uma rodada de cron (1 min) = até 12 msgs. 2.300 contatos ÷ 12 = ~192 minutos (~3h).
- *
- * Auth: INTERNAL_CRON_SECRET (mesmo padrão dos demais crons).
+ * Auth: INTERNAL_CRON_SECRET.
  */
 import { NextRequest, NextResponse } from "next/server";
 
@@ -23,9 +18,6 @@ import { env } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
 
-const BATCH_SIZE = 12; // 12 msgs/min = throttle de campanha (1 msg/5s)
-const THROTTLE_MS = 5000; // 5s entre cada envio (regra anti-ban para campanha)
-
 function verifyCronSecret(req: NextRequest): boolean {
   const auth = req.headers.get("authorization") ?? "";
   const token = auth.replace("Bearer ", "");
@@ -35,6 +27,10 @@ function verifyCronSecret(req: NextRequest): boolean {
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function randomBetween(min: number, max: number): number {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
 export async function POST(req: NextRequest): Promise<Response> {
@@ -52,9 +48,9 @@ export async function POST(req: NextRequest): Promise<Response> {
   // 1. Buscar broadcasts ativos
   const { data: broadcasts } = await admin
     .from("bulk_broadcasts")
-    .select("id, organization_id, message_text, channel_session_id")
+    .select("*")
     .eq("status", "running")
-    .limit(5); // Processar no máximo 5 campanhas por rodada
+    .limit(3);
 
   if (!broadcasts || broadcasts.length === 0) {
     return NextResponse.json({ processed: 0, reason: "no_active_broadcasts" });
@@ -62,24 +58,59 @@ export async function POST(req: NextRequest): Promise<Response> {
 
   let totalSent = 0;
   let totalFailed = 0;
+  const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
 
   for (const bc of broadcasts) {
-    // 2. Pegar sessão WAHA
-    const { data: session } = await admin
+    // Resetar contagem diária se mudou o dia
+    if (bc.last_send_date !== today) {
+      await admin
+        .from("bulk_broadcasts")
+        .update({ sent_today: 0, last_send_date: today })
+        .eq("id", bc.id);
+      bc.sent_today = 0;
+    }
+
+    // Checar limite diário
+    const dailyLimit = bc.daily_limit ?? 100;
+    if (bc.sent_today >= dailyLimit) {
+      continue; // Limite atingido hoje, pula pro próximo broadcast
+    }
+
+    const remaining = dailyLimit - (bc.sent_today ?? 0);
+
+    // Variações de mensagem (spinning)
+    const variants: string[] = bc.message_variants && (bc.message_variants as string[]).length > 0
+      ? (bc.message_variants as string[])
+      : [bc.message_text]; // fallback pra mensagem única
+
+    // Canais pra rotação
+    const channelIds: string[] = bc.channel_session_ids && (bc.channel_session_ids as string[]).length > 0
+      ? (bc.channel_session_ids as string[])
+      : [bc.channel_session_id]; // fallback pra canal único
+
+    // Resolver session names dos canais
+    const { data: channels } = await admin
       .from("channel_sessions")
-      .select("waha_session_name")
-      .eq("id", bc.channel_session_id)
-      .single();
+      .select("id, waha_session_name")
+      .in("id", channelIds);
 
-    if (!session) continue;
+    if (!channels || channels.length === 0) continue;
 
-    // 3. Pegar batch de contatos pending
+    // Throttle config
+    const throttleMin = bc.throttle_min_ms ?? 8000;
+    const throttleMax = bc.throttle_max_ms ?? 20000;
+
+    // Quantos enviar nesta rodada (mínimo entre remaining e batch calculado pelo timer)
+    // Com timer de 8-20s, em 55s de cron cabe ~3-6 mensagens
+    const batchSize = Math.min(remaining, 6);
+
+    // Buscar contatos pending
     const { data: contacts } = await admin
       .from("bulk_broadcast_contacts")
       .select("id, phone_number")
       .eq("broadcast_id", bc.id)
       .eq("status", "pending")
-      .limit(BATCH_SIZE)
+      .limit(batchSize)
       .order("created_at", { ascending: true });
 
     if (!contacts || contacts.length === 0) {
@@ -91,8 +122,19 @@ export async function POST(req: NextRequest): Promise<Response> {
       continue;
     }
 
-    // 4. Enviar cada contato com throttle
+    // Contador pra rotação de canais (round-robin)
+    let channelIndex = (bc.sent_count ?? 0) % channels.length;
+
     for (const contact of contacts) {
+      // Sortear variação (spinning)
+      const variantIdx = randomBetween(0, variants.length - 1);
+      const messageText = variants[variantIdx] ?? variants[0];
+
+      // Selecionar canal (rotação round-robin)
+      const channel = channels[channelIndex % channels.length];
+      if (!channel) continue;
+      channelIndex++;
+
       const chatId = resolveWahaChatId({
         isGroup: false,
         groupChatId: null,
@@ -111,43 +153,50 @@ export async function POST(req: NextRequest): Promise<Response> {
       }
 
       try {
-        // Marcar como sending pra não pegar de novo
+        // Marcar como queued
         await admin
           .from("bulk_broadcast_contacts")
           .update({ status: "queued" })
           .eq("id", contact.id);
 
         // Enviar via WAHA
-        await waha.sendMessage(session.waha_session_name, chatId, bc.message_text);
+        await waha.sendMessage(
+          channel.waha_session_name as string,
+          chatId,
+          messageText as string,
+        );
 
-        // Marcar como sent
+        // Marcar como sent + tracking
         await admin
           .from("bulk_broadcast_contacts")
-          .update({ status: "sent", sent_at: new Date().toISOString() })
+          .update({
+            status: "sent",
+            sent_at: new Date().toISOString(),
+            variant_index: variantIdx,
+            sent_by_channel_id: channel.id,
+          })
           .eq("id", contact.id);
 
-        // Incrementar contador
-        await admin.rpc("fn_increment_broadcast_sent", { p_broadcast_id: bc.id });
+        // Incrementar contadores
+        await admin
+          .from("bulk_broadcasts")
+          .update({
+            sent_count: (bc.sent_count ?? 0) + totalSent + 1,
+            sent_today: (bc.sent_today ?? 0) + totalSent + 1,
+          })
+          .eq("id", bc.id);
 
         totalSent++;
 
-        // Throttle — esperar 5s entre cada envio
-        if (totalSent < contacts.length) {
-          await sleep(THROTTLE_MS);
-        }
+        // Timer randômico entre envios
+        const waitMs = randomBetween(throttleMin, throttleMax);
+        await sleep(waitMs);
       } catch (err) {
         const msg = err instanceof Error ? err.message : "unknown_error";
         await admin
           .from("bulk_broadcast_contacts")
           .update({ status: "failed", error_message: msg })
           .eq("id", contact.id);
-
-        // Incrementar failed
-        await admin
-          .from("bulk_broadcasts")
-          .update({ failed_count: bc.id }) // será incremento via SQL
-          .eq("id", bc.id);
-
         totalFailed++;
       }
     }
