@@ -824,7 +824,7 @@ Onboarding de novo dev deve completar em 5 minutos: clone → install → .env �
 1. README sections: Visão (1 parágrafo), Quickstart (numbered 6 passos), Stack (tabela com versão), Estrutura (tree top-level), Comandos (dev, build, test, e2e, db), Suporte (links docs)
 2. Quickstart deve incluir snippet copy-paste 100% funcional em macOS/Linux:
    ```
-   git clone … && cd deskcommcrm
+   git clone … && cd femidia-crm
    pnpm install
    cp .env.example .env.local && cat scripts/dev/seed-secrets.sh
    supabase start && supabase db reset

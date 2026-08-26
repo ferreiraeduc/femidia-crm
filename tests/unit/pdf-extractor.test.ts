@@ -30,7 +30,7 @@ afterEach(() => {
 describe("extractPdfText", () => {
   it("extrai texto de um PDF real", async () => {
     const { extractPdfText } = await import("@/lib/ai/rag/extractors/pdf");
-    expect(await extractPdfText(fixture("sample-text.pdf"))).toBe("DeskcommCRM RAG fixture");
+    expect(await extractPdfText(fixture("sample-text.pdf"))).toBe("Femídia CRM RAG fixture");
   });
 
   it("preserva a acentuação do português", async () => {

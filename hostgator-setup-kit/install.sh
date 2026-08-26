@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# DeskcommCRM — instalador self-host para VPS (HostGator).
+# Femídia CRM — instalador self-host para VPS (HostGator).
 #
 # Idempotente: pode rodar de novo sem estragar nada. Dependências no host:
 # só docker, docker compose, git, openssl, curl. psql/bootstrap rodam via Docker.
@@ -15,11 +15,11 @@ set -euo pipefail
 # de qualquer 'cd' (step 2 pode entrar num repo clonado à parte).
 KIT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
 
-REPO_URL="${REPO_URL:-https://github.com/melgarafael/DeskcommCRM.git}"
+REPO_URL="${REPO_URL:-https://github.com/ferreiraeduc/femidia-crm.git}"
 # Uma constante, dois usos (o fim feliz e o fim travado) — e o comecar.sh tem a
 # gêmea. Link repetido à mão vira link divergente na primeira troca.
 COMUNIDADE_URL="https://lp-comunidade.automatiklabs.com.br"
-REPO_DIR="${REPO_DIR:-deskcommcrm}"
+REPO_DIR="${REPO_DIR:-femidia-crm}"
 COMPOSE="docker-compose.prod.yml"
 COMPOSE_TRAEFIK="docker-compose.traefik.yml"
 NONINTERACTIVE=0
@@ -553,9 +553,9 @@ decide_proxy() {  # decide_proxy <portas_ocupadas> <projeto_do_dono> <projeto_at
   # próprio kit ensina como caminho para corrigir uma resposta.
   #
   # Só que "mesma instalação" NÃO é o mesmo que "mesmo nome de projeto": o nome
-  # é o basename da pasta, e toda cópia do repo se chama DeskcommCRM. Duas
-  # árvores irmãs (/root/DeskcommCRM e /root/apagar7/DeskcommCRM) colidem no
-  # nome `deskcommcrm` e esta linha as declarava re-execução uma da outra —
+  # é o basename da pasta, e toda cópia do repo se chama Femídia CRM. Duas
+  # árvores irmãs (/root/Femídia CRM e /root/apagar7/Femídia CRM) colidem no
+  # nome `femidia-crm` e esta linha as declarava re-execução uma da outra —
   # exatamente o caso que a varredura de portas foi escrita para pegar. Medido
   # numa VPS de produção em 2026-08-24: a instalação de uma aula passou por
   # aqui, recriou os contêineres do CRM no ar com o .env dela e trocou o banco
@@ -820,7 +820,7 @@ fi
 #
 # A varredura NÃO procura por "traefik": procura por QUEM PUBLICA as portas, e
 # só depois pergunta o que é. A versão anterior só reconhecia Traefik, então um
-# Caddy — inclusive o de outro DeskcommCRM instalado na mesma VPS — passava
+# Caddy — inclusive o de outro Femídia CRM instalado na mesma VPS — passava
 # despercebido e a instalação escolhia `caddy`, garantindo o choque de portas.
 # Medido numa VPS com produção rodando: exatamente esse erro, na fase 4.
 #
@@ -848,7 +848,7 @@ if [ -n "$portas_ocupadas" ]; then
     unset _resto
     # De qual cópia do repo saiu esse contêiner. É o que separa "sou eu rodando
     # de novo" de "é a instalação irmã que está no ar" quando as duas pastas se
-    # chamam DeskcommCRM e por isso compartilham o nome do projeto.
+    # chamam Femídia CRM e por isso compartilham o nome do projeto.
     dono_arvore="$(docker inspect "$dono_portas" --format '{{index .Config.Labels "com.docker.compose.project.working_dir"}}' 2>/dev/null || true)"
     dono_arvore="${dono_arvore%/}"
   fi
@@ -938,9 +938,9 @@ e, se for mesmo um Traefik, ponha REVERSE_PROXY=traefik no .env e rode de novo."
     # à instalação que está no ar — foi assim que uma aula subiu por cima de uma
     # produção. Aqui o nome das DUAS pastas aparece.
     if [ -n "$dono_arvore" ] && [ "$dono_projeto" = "$proj_atual" ] && [ "$dono_arvore" != "$_minha_arvore" ]; then
-      c_red "✖ Já existe um DeskcommCRM NO AR nesta VPS, instalado em ${dono_arvore}."
+      c_red "✖ Já existe um Femídia CRM NO AR nesta VPS, instalado em ${dono_arvore}."
       printf '\n%s\n'   "  Esta pasta (${_minha_arvore}) é outra cópia do repo. As duas se chamam"
-      printf '%s\n'     "  DeskcommCRM, então o Docker dá às duas o MESMO nome de projeto"
+      printf '%s\n'     "  Femídia CRM, então o Docker dá às duas o MESMO nome de projeto"
       printf '%s\n\n'   "  ('${proj_atual}') — e instalar aqui recriaria os contêineres daquela."
       printf '%s\n'     "  Na prática: o CRM que está no ar passaria a rodar com o .env DESTA pasta"
       printf '%s\n\n'   "  (outro banco, outras chaves), e as conexões de WhatsApp cairiam."
@@ -949,7 +949,7 @@ e, se for mesmo um Traefik, ponha REVERSE_PROXY=traefik no .env e rode de novo."
       printf '%s\n'     "  Quer mesmo uma SEGUNDA instalação nesta VPS? Ela precisa de nome de"
       printf '%s\n'     "  projeto e domínio próprios — ponha no .env desta pasta, antes de rodar:"
       printf '%s\n\n'   "       COMPOSE_PROJECT_NAME=deskcomm-$(basename "${_minha_arvore}" | tr 'A-Z' 'a-z')-2"
-      die "Instalação interrompida para não derrubar o DeskcommCRM que está no ar em ${dono_arvore}."
+      die "Instalação interrompida para não derrubar o Femídia CRM que está no ar em ${dono_arvore}."
     fi
     # Concordância com o número de portas: "A porta 80 e 443 já está ocupada"
     # saiu na prova real e denuncia texto montado sem olhar o próprio dado.
@@ -961,7 +961,7 @@ e, se for mesmo um Traefik, ponha REVERSE_PROXY=traefik no .env e rode de novo."
     printf '\n%s\n'   "  O CRM precisa dessas duas portas para publicar o site com HTTPS. Subir um"
     printf '%s\n\n'   "  segundo proxy nelas não funciona: o Docker recusa e a instalação para."
     printf '%s\n'     "  Como resolver, na ordem do mais provável:"
-    printf '\n%s\n'   "  1. Já é outro DeskcommCRM neste servidor? Então use aquele — entre na"
+    printf '\n%s\n'   "  1. Já é outro Femídia CRM neste servidor? Então use aquele — entre na"
     printf '%s\n'     "     pasta dele e rode: bash hostgator-setup-kit/update.sh"
     printf '\n%s\n'   "  2. Não usa mais o que está ocupando? Desligue e rode este instalador de novo:"
     [ -n "$dono_portas" ] && printf '%s\n' "       docker stop ${dono_portas}"
@@ -1006,7 +1006,7 @@ fi
 # colar. Sem o token, nada muda: seguem as perguntas de sempre.
 if [ -z "${NEXT_PUBLIC_SUPABASE_URL:-}" ] && [ -n "${SUPABASE_ACCESS_TOKEN:-}" ]; then
   step "Criando o projeto Supabase automaticamente"
-  _sb_out="$(bash "$KIT_DIR/supabase-provision.sh" "${APP_NAME:-DeskcommCRM}" "${SUPABASE_REGION:-sa-east-1}")" \
+  _sb_out="$(bash "$KIT_DIR/supabase-provision.sh" "${APP_NAME:-Femídia CRM}" "${SUPABASE_REGION:-sa-east-1}")" \
     || die "Não consegui criar o projeto Supabase. Crie no painel e rode de novo sem SUPABASE_ACCESS_TOKEN."
   # O script imprime `CHAVE='valor'` em stdout (o visual dele vai para stderr).
   # A leitura é por parse, não por `eval` — o porquê está em
@@ -1116,8 +1116,8 @@ fi
 VERSAO_ALVO="$(ultima_versao_publicada "$REPO_URL")"
 
 # A tag do git é condição NECESSÁRIA, não suficiente: ela nasce minutos antes
-# das imagens, e `deskcomm-worker`/`deskcomm-scheduler` só passaram a existir
-# depois das releases que já estão publicadas — `deskcomm-worker:1.2.1` nunca
+# das imagens, e `femidia-worker`/`femidia-scheduler` só passaram a existir
+# depois das releases que já estão publicadas — `femidia-worker:1.2.1` nunca
 # vai existir, porque a v1.2.1 é passado. Sem esta conferência, o .env do
 # cliente receberia duas referências impossíveis e o kit as construiria aqui em
 # silêncio, do topo da main: app de uma release + worker de outro código.
@@ -1162,7 +1162,7 @@ FIELDS=(
   ${CAMPO_OPENAI_EXTRA:+"$CAMPO_OPENAI_EXTRA"}
   "OWNER_EMAIL|E-mail do primeiro admin (dono)||v_email||"
   "OWNER_PASSWORD|Senha do primeiro admin (mínimo 8 caracteres)||v_password|secret|"
-  "APP_NAME|Nome que aparece na interface (Enter para o padrão)|DeskcommCRM|||"
+  "APP_NAME|Nome que aparece na interface (Enter para o padrão)|Femídia CRM|||"
   # Sem default, e `opcional`: em `--yes` o `ask_one` devolve 0 sem associar a
   # variável (campo sem default e sem `opcional` morre em `die`), e o `envq` lá
   # embaixo usa `${APP_ACCENT_HEX:-}`. Enter = a cor do produto, que é o
@@ -1403,7 +1403,7 @@ _ref_final="${APP_IMAGE##*/}"
 case "$_ref_final" in
   *@sha256:*)
     # O operador pinou o app por DIGEST. Derivar a tag daí produziria
-    # `deskcomm-worker:<hash-do-app>` — uma referência que não existe em lugar
+    # `femidia-worker:<hash-do-app>` — uma referência que não existe em lugar
     # nenhum, e o `pull` falharia com "manifest unknown" sem ninguém entender
     # por quê. Worker e scheduler vão para o canal estável, e o aviso sai porque
     # quem pinou por digest tinha um motivo e precisa saber que ele não se

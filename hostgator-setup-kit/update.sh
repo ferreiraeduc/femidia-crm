@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Atualiza o DeskcommCRM na VPS: código novo + banco + app — com BACKUP antes e
+# Atualiza o Femídia CRM na VPS: código novo + banco + app — com BACKUP antes e
 # CHECAGEM DE SAÚDE depois. Um comando só, pensado pra quem não é técnico:
 #
 #   bash hostgator-setup-kit/update.sh
@@ -57,7 +57,7 @@ CURRENT_TAG="$(git describe --tags --exact-match HEAD 2>/dev/null || true)"
 # (Veio da `main`; a versão por tag cai exatamente na mesma armadilha, porque a
 # comparação de tags também fica satisfeita com a imagem velha no lugar.)
 image_desatualizada() {
-  local img="${APP_IMAGE:-ghcr.io/melgarafael/deskcommcrm:latest}" local_d remote_d
+  local img="${APP_IMAGE:-ghcr.io/ferreiraeduc/femidia-crm:latest}" local_d remote_d
   local_d="$(docker image inspect "$img" --format '{{if .RepoDigests}}{{index .RepoDigests 0}}{{end}}' 2>/dev/null | sed 's/.*@//')"
   [ -z "$local_d" ] && return 0                 # nem baixada ainda → atualizar
   remote_d="$(docker buildx imagetools inspect "$img" 2>/dev/null | awk '/^Digest:/{print $2; exit}')"

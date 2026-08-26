@@ -1,6 +1,6 @@
 ---
 type: harness-audit
-project: DeskcommCRM
+project: Femídia CRM
 status: draft
 last_updated: 2026-07-29
 generated_by: auditoria documental (Claude Code) — verificação de arquivos, CI e configs
@@ -8,7 +8,7 @@ confidence: alta (todos os itens verificados por leitura direta de arquivo/confi
 audited_against: origin/main @ 789dfa6 (v1.0.0, 2026-07-29)
 ---
 
-# Auditoria do harness — DeskcommCRM
+# Auditoria do harness — Femídia CRM
 
 > # ⚠️ ESTE DOCUMENTO É UM RETRATO, NÃO O ESTADO DE HOJE
 >
@@ -28,7 +28,7 @@ audited_against: origin/main @ 789dfa6 (v1.0.0, 2026-07-29)
 > Precisa do estado de agora? Meça na fonte. Para o que este documento mais cita:
 >
 > ```bash
-> gh api repos/melgarafael/DeskcommCRM/branches/main/protection \
+> gh api repos/ferreiraeduc/femidia-crm/branches/main/protection \
 >   --jq '.required_status_checks.contexts'      # os checks obrigatórios
 > pnpm typecheck && pnpm lint && pnpm lint:channels && pnpm test:unit && pnpm test:shell
 > ```

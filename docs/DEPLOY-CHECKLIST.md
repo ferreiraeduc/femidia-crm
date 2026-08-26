@@ -30,7 +30,7 @@ O procedimento completo está em [`doctrine/packaging.md`](doctrine/packaging.md
 - [ ] `pnpm test:db` verde localmente (aplica o baseline em install **e** update num Postgres limpo)
 - [ ] `pnpm test:shell` verde (é o único gate que exercita o kit)
 - [ ] O número da versão nunca foi publicado: `git tag --list 'vX.Y.Z'` vazio **e**
-      `ghcr_status deskcommcrm X.Y.Z` → **404**
+      `ghcr_status femidia-crm X.Y.Z` → **404**
 
       Use a função `ghcr_status` de [`doctrine/packaging.md`](doctrine/packaging.md)
       §Checklist de release. **Não use `curl` cru no GHCR**: ele responde `401`, e um corpo de
@@ -41,7 +41,7 @@ O procedimento completo está em [`doctrine/packaging.md`](doctrine/packaging.md
 
 - [ ] `git tag vX.Y.Z && git push origin vX.Y.Z` a partir de um commit da `main`
 - [ ] `gh run list --workflow=publish-image.yml --limit 3` → verde
-- [ ] As **três** imagens existem na versão: `deskcommcrm`, `deskcomm-worker`, `deskcomm-scheduler`
+- [ ] As **três** imagens existem na versão: `femidia-crm`, `femidia-worker`, `femidia-scheduler`
 - [ ] `gh release create vX.Y.Z` com as notas do CHANGELOG
 - [ ] **Depois da release**, `stable` e `X.Y.Z` são o mesmo digest nas três imagens.
       Nesta ordem, e não antes: na v1.3.0 a conferência rodou antes do

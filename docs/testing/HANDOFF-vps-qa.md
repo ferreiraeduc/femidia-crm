@@ -22,7 +22,7 @@ os bugs achados na causa raiz.
 - **App:** `next build` + `next start` na :3001, `NODE_ENV=production`.
 - **Realismo de VPS:** `RESEND_API_KEY` VAZIO de propósito (primeiro deploy não
   tem email) — é onde apareceram bugs de primeira impressão.
-- **Worktree:** `~/DeskcommCRM-qa` (branch `qa/vps-experience`), `node_modules`
+- **Worktree:** `~/Femídia CRM-qa` (branch `qa/vps-experience`), `node_modules`
   REAL (não symlink), FORA de `/tmp` (foi limpo no meio da sessão 1x).
 - **Config de teste local (NÃO commitar):** `enable_signup = true` no config.toml
   local libera o password-grant do GoTrue local para o seed; em produção o login
@@ -66,7 +66,7 @@ os bugs achados na causa raiz.
 
 - **M2/M10** — trilha manual do `docs/deploy-selfhost/README.md` não configura o
   cron do drain → automações morrem em silêncio numa VPS que não usou o kit.
-- **M3** — README self-host aponta repo/imagem `deskcommcrm/*`; kit usa `melgarafael/*`.
+- **M3** — README self-host aponta repo/imagem `femidia-crm/*`; kit usa `ferreiraeduc/*`.
 - **M4** — `INVITE_TOKEN_SECRET` ausente → fallback `"dev-fallback"` → convite forjável.
 - **M5** — AI Gateway key ausente → bot mudo sem feedback na UI.
 - **M6** — Knowledge sources: upload de FAQ/política é stub "Em breve".

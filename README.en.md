@@ -2,7 +2,7 @@
 
 [🇧🇷 Português](README.md) · 🇺🇸 English · [🇪🇸 Español](README.es.md)
 
-# 🛠️ DeskcommCRM — The open-source AI Sales OS for WhatsApp
+# 🛠️ Femídia CRM — The open-source AI Sales OS for WhatsApp
 
 **AI agents that answer, qualify and sell on WhatsApp — inside an open-source CRM running on your own server.**
 **No subscription, no gated features, your data stays yours. The open alternative to Kommo, Octadesk and Intercom.**
@@ -11,7 +11,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript)](https://www.typescriptlang.org)
 [![Supabase](https://img.shields.io/badge/Supabase-Postgres%2BAuth%2BStorage-3ecf8e?logo=supabase)](https://supabase.com)
 [![Self-hosted](https://img.shields.io/badge/self--hosted-one%20command-orange)](hostgator-setup-kit/)
-[![CI](https://github.com/melgarafael/DeskcommCRM/actions/workflows/ci.yml/badge.svg)](https://github.com/melgarafael/DeskcommCRM/actions/workflows/ci.yml)
+[![CI](https://github.com/ferreiraeduc/femidia-crm/actions/workflows/ci.yml/badge.svg)](https://github.com/ferreiraeduc/femidia-crm/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 [**⚡ Install**](#-install-on-your-vps-the-main-path) · [**🔄 Update**](#-updating) · [**🧭 Vision**](VISION.md) · [**🏗️ Architecture**](ARCHITECTURE.md) · [**🤝 Contributing**](CONTRIBUTING.md) · [**🗺️ Roadmap**](#%EF%B8%8F-roadmap)
@@ -22,7 +22,7 @@
 
 > ### ☁️ Run this CRM in production with one command
 >
-> DeskcommCRM is developed in **partnership with HostGator**: the [`hostgator-setup-kit/`](hostgator-setup-kit/)
+> Femídia CRM is developed in **partnership with HostGator**: the [`hostgator-setup-kit/`](hostgator-setup-kit/)
 > installs the full CRM (app + WhatsApp + database) on a VPS with a single command, and the
 > [production runbook](docs/runbooks/waha-hostgator.md) assumes that environment.
 >
@@ -34,7 +34,7 @@
 > command for your case:
 >
 > ```bash
-> curl -fsSL https://raw.githubusercontent.com/melgarafael/DeskcommCRM/main/hostgator-setup-kit/comecar.sh | bash
+> curl -fsSL https://raw.githubusercontent.com/ferreiraeduc/femidia-crm/main/hostgator-setup-kit/comecar.sh | bash
 > ```
 >
 > *(prefer to read before executing? clone the repo and run `bash hostgator-setup-kit/comecar.sh` —
@@ -67,8 +67,8 @@ That is not a freeze: the terminal is hiding your password. Type (or paste) it a
 Once inside the VPS:
 
 ```bash
-git clone https://github.com/melgarafael/DeskcommCRM.git
-cd DeskcommCRM
+git clone https://github.com/ferreiraeduc/femidia-crm.git
+cd Femídia CRM
 bash hostgator-setup-kit/install.sh
 ```
 
@@ -126,7 +126,7 @@ onboarding, scan the QR code with your WhatsApp number.
 ### 🤖 Rather have an AI install it for you?
 
 Drop the `hostgator-setup-kit/` folder into **Claude Code** running inside the VPS and say
-*"install DeskcommCRM for me"*. It reads the kit's [`CLAUDE.md`](hostgator-setup-kit/CLAUDE.md)
+*"install Femídia CRM for me"*. It reads the kit's [`CLAUDE.md`](hostgator-setup-kit/CLAUDE.md)
 — which carries the step-by-step and the already-mapped pitfalls — and walks you through it.
 
 ---
@@ -154,7 +154,7 @@ broken app back.
 ### From the terminal
 
 ```bash
-cd /path/to/DeskcommCRM
+cd /path/to/Femídia CRM
 bash hostgator-setup-kit/update.sh
 ```
 
@@ -200,7 +200,7 @@ esperados`, that one is worth keeping.
 
 ## ✨ What is it
 
-**Deskcomm** comes from **Desk** + **comm** (commerce): your entire sales operation on a single desk, run by people and AI agents working together.
+**Femídia** comes from **Desk** + **comm** (commerce): your entire sales operation on a single desk, run by people and AI agents working together.
 
 The project was born as an e-commerce CRM — and the open-source community took it much further: today it runs in **clinics, real-estate agencies, info-product businesses, agencies, stores and service providers** — any business that sells over WhatsApp. The product followed that shift and became a **sales operating system**: AI agents with per-tenant RAG answer customers, qualify leads, move them through the pipeline, trigger automations and know when to hand off to a human — with the whole CRM exposed via **MCP** so agents can truly operate it. The full story is in [`VISION.md`](VISION.md).
 
@@ -269,8 +269,8 @@ Details: [`ARCHITECTURE.md`](ARCHITECTURE.md).
 > This section is for people who will change the code.
 
 ```bash
-git clone https://github.com/melgarafael/DeskcommCRM.git
-cd DeskcommCRM
+git clone https://github.com/ferreiraeduc/femidia-crm.git
+cd Femídia CRM
 
 nvm use                     # Node 22
 npm install -g pnpm && pnpm install
@@ -308,7 +308,7 @@ pnpm test:e2e      # Playwright (requires dev server)
 **These checks are required** to merge into `main`. This list has already said "four" and then "five" — **measure, don't trust it**:
 
 ```bash
-gh api repos/melgarafael/DeskcommCRM/branches/main/protection \
+gh api repos/ferreiraeduc/femidia-crm/branches/main/protection \
   --jq '.required_status_checks.contexts|join(", ")'
 # on 2026-08-14: verify, build-and-size, invariants, e2e, imagens-ok
 ```
@@ -375,9 +375,9 @@ Two required gates do **not** fit there and only run in CI: `e2e` (needs a local
 
 ## 🐛 Reporting bugs
 
-Open an [issue](https://github.com/melgarafael/DeskcommCRM/issues/new/choose) — the template asks for what we need (environment, `/api/v1/health`, steps). Running `bash hostgator-setup-kit/healthcheck.sh` and pasting the output helps a lot.
+Open an [issue](https://github.com/ferreiraeduc/femidia-crm/issues/new/choose) — the template asks for what we need (environment, `/api/v1/health`, steps). Running `bash hostgator-setup-kit/healthcheck.sh` and pasting the output helps a lot.
 
-For **security vulnerabilities**, **do NOT open a public issue** — use [private vulnerability reporting](https://github.com/melgarafael/DeskcommCRM/security/advisories/new). Details in [`SECURITY.md`](SECURITY.md).
+For **security vulnerabilities**, **do NOT open a public issue** — use [private vulnerability reporting](https://github.com/ferreiraeduc/femidia-crm/security/advisories/new). Details in [`SECURITY.md`](SECURITY.md).
 
 ---
 
@@ -399,7 +399,7 @@ For **security vulnerabilities**, **do NOT open a public issue** — use [privat
 
 ### 🔮 Next
 
-- **Public MCP** — CRM capabilities exposed to the agent ecosystem: plug in any agent and it operates Deskcomm.
+- **Public MCP** — CRM capabilities exposed to the agent ecosystem: plug in any agent and it operates Femídia.
 - **Niche templates** — ready-made pipelines and vocabularies for clinics, real estate, info-products and services (e-commerce already shipped).
 - **Integrations** — VTEX and Shopify via the adapter pattern (Nuvemshop already shipped).
 - **Probabilistic identity** — contact unification across channels.
@@ -408,10 +408,10 @@ For **security vulnerabilities**, **do NOT open a public issue** — use [privat
 
 ## 💬 Community
 
-- **Discussions:** [GitHub Discussions](https://github.com/melgarafael/DeskcommCRM/discussions)
-- **Issues:** [GitHub Issues](https://github.com/melgarafael/DeskcommCRM/issues)
-- **Instagram:** [@melgarafael](https://www.instagram.com/melgarafael)
-- **YouTube:** [youtube.com/@melgarafael](https://www.youtube.com/@melgarafael)
+- **Discussions:** [GitHub Discussions](https://github.com/ferreiraeduc/femidia-crm/discussions)
+- **Issues:** [GitHub Issues](https://github.com/ferreiraeduc/femidia-crm/issues)
+- **Instagram:** [@ferreiraeduc](https://www.instagram.com/ferreiraeduc)
+- **YouTube:** [youtube.com/@ferreiraeduc](https://www.youtube.com/@ferreiraeduc)
 
 ---
 
@@ -439,7 +439,7 @@ This is a **self-hosted** project: each person runs the CRM on their **own infra
 - **HostGator** — the infrastructure partnership that made one-command self-hosting possible.
 - **Anthropic**, **OpenAI** and **OpenRouter** — the AI providers the CRM knows how to use.
 - **shadcn/ui** — component base.
-- The community that took Deskcomm from e-commerce to clinics, real estate, info-products and beyond — you defined what this project is.
+- The community that took Femídia from e-commerce to clinics, real estate, info-products and beyond — you defined what this project is.
 
 ---
 

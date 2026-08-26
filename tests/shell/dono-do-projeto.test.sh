@@ -7,9 +7,9 @@
 #
 # ── O defeito que ele guarda, medido numa VPS de verdade ────────────────────
 #
-# `/root/DeskcommCRM` e `/root/apagar6/DeskcommCRM` — o clone de produção e um
+# `/root/Femídia CRM` e `/root/apagar6/Femídia CRM` — o clone de produção e um
 # de teste ao lado — têm o mesmo basename, logo o mesmo nome de projeto compose
-# (`deskcommcrm`). O cron rodava o agent.sh das DUAS a cada 5 minutos. Em
+# (`femidia-crm`). O cron rodava o agent.sh das DUAS a cada 5 minutos. Em
 # 21/08 13:30 o clone de teste recriou o contêiner do WhatsApp com a chave do
 # .env dele; às 14:47 o app foi recriado da árvore de produção, com outra chave.
 # Resultado: `waha_create_401` em toda chamada, por três dias, nenhum número
@@ -50,8 +50,8 @@ PATH="$WORK/bin:$PATH"
 # ainda está no disco — quem apenas moveu a pasta deixa contêineres apontando
 # para um caminho morto, e travar esse caso seria um gate nascendo vermelho em
 # quem não fez nada de errado.
-PROD="$WORK/root/DeskcommCRM"
-TESTE="$WORK/root/apagar6/DeskcommCRM"
+PROD="$WORK/root/Femídia CRM"
+TESTE="$WORK/root/apagar6/Femídia CRM"
 MUDOU_DE_PASTA="$WORK/root/endereco-antigo"   # de propósito: NÃO é criado
 mkdir -p "$PROD" "$TESTE"
 touch "$PROD/docker-compose.prod.yml" "$TESTE/docker-compose.prod.yml"

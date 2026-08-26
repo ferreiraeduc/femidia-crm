@@ -4,7 +4,7 @@
 
 ## RÉGUA DA MEDIÇÃO (leia antes de qualquer número)
 
-Worktree `/Users/rafaelmelgaco/DeskcommCRM-marca`, branch `fix/auth-getuser-erro-mudo`
+Worktree `/Users/rafaelmelgaco/Femídia CRM-marca`, branch `fix/auth-getuser-erro-mudo`
 (**não `main`**), working tree limpo, **HEAD `760b3d17`** — não `fe323354` como diz o
 briefing, nem `bcf5875c` como diziam os desenhos. A árvore avançou 2 commits durante a
 fase de desenho. Medi o delta:
@@ -1161,7 +1161,7 @@ teste com esse nome, para que a próxima pessoa que "simplificar" o gate veja ve
 
 - `build-and-size` (`pnpm build`), `e2e` (45 das 46 specs), `imagens-ok`.
 - ⚠️ Reconferir a lista de checks obrigatórios na fonte antes de citar qualquer número —
-  `gh api repos/melgarafael/DeskcommCRM/branches/main/protection --jq '.required_status_checks.contexts|join(", ")'`.
+  `gh api repos/ferreiraeduc/femidia-crm/branches/main/protection --jq '.required_status_checks.contexts|join(", ")'`.
   Essa lista já apodreceu três vezes no `CLAUDE.md`.
 
 **LACUNA DE VERIFICAÇÃO DECLARADA, não resolvida:** o Docker desta máquina não sobe, então

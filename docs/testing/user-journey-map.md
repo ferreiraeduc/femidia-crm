@@ -1,6 +1,6 @@
 # Mapa de Jornadas & Testes E2E — Experiência do usuário em VPS fresca
 
-> Fonte da verdade do QA de produto do DeskcommCRM open-source. Cada caso aqui é
+> Fonte da verdade do QA de produto do Femídia CRM open-source. Cada caso aqui é
 > exercitado **pelo frontend real** (Playwright), com contas de teste reais e
 > recursos reais (banco fresco do `baseline.sql`, WAHA local, receiver de webhook
 > real). Curl/API só como diagnóstico, nunca como prova de UX.
@@ -404,7 +404,7 @@ Critério: nenhuma tela quebra, nenhum stack trace, nenhum texto de erro cru.
 |----|--------|--------|-----------|
 | M1 | `supabase/config.toml` trava `major_version = 15`, mas `baseline.sql` exige PG17 (`GRANT MAINTAIN`) — contribuidor open-source não sobe ambiente local | reproduzido | Alta (DX) |
 | M2 | Trilha manual do `docs/deploy-selfhost/README.md` não configura o cron do drain → automações mortas em silêncio | explorer webhooks | Alta |
-| M3 | ~~README self-host aponta repo/imagem `deskcommcrm/*`; kit usa `melgarafael/*`~~ **CORRIGIDO 2026-08-13** — era um `git clone` de uma org que não existe (404) em `docs/deploy-selfhost/README.md:26`. Uma consultoria externa leu essa string e concluiu que o compose apontava para uma org desvinculada; o compose sempre apontou para `melgarafael`. | explorer webhooks | — |
+| M3 | ~~README self-host aponta repo/imagem `femidia-crm/*`; kit usa `ferreiraeduc/*`~~ **CORRIGIDO 2026-08-13** — era um `git clone` de uma org que não existe (404) em `docs/deploy-selfhost/README.md:26`. Uma consultoria externa leu essa string e concluiu que o compose apontava para uma org desvinculada; o compose sempre apontou para `ferreiraeduc`. | explorer webhooks | — |
 | M4 | `INVITE_TOKEN_SECRET` ausente → fallback `"dev-fallback"` → convite forjável em VPS mal configurada | explorer CRM/time | Alta (segurança) |
 | M5 | AI Gateway key ausente → bot mudo sem NENHUM feedback na UI | explorer IA | Média |
 | M6 | Knowledge sources: botões de upload/configurar são stubs "Em breve" | explorer IA | Média |
@@ -437,7 +437,7 @@ Critério: nenhuma tela quebra, nenhum stack trace, nenhum texto de erro cru.
 Ambiente: VPS HostGator (143.95.209.17), domínio `test-crm.vidagamificada.com.br`,
 projeto Supabase **novo e virgem** (0 tabelas / 0 usuários / 0 buckets antes de cada
 instalação), cache de build do Docker zerado (a VPS realmente compila o worker),
-imagem `ghcr.io/melgarafael/deskcommcrm:latest` — a mesma que o comprador recebe.
+imagem `ghcr.io/ferreiraeduc/femidia-crm:latest` — a mesma que o comprador recebe.
 
 Duas instalações completas do zero: a primeira para achar defeitos, a segunda
 (após todas as correções publicadas na `main`) como prova. Entre elas, o banco
@@ -492,7 +492,7 @@ espaço e acento, que era o gatilho do defeito #6.
   alguém passa a escutar, ou o trigger sai. Não inventei consumidor.
 - Tela de Conexões diz "1 número conectado" mesmo com o número **caído** (conta
   sessões, não conectados).
-- ~~O autenticador registra o nome fixo "DeskcommCRM", ignorando o `APP_NAME` que o
+- ~~O autenticador registra o nome fixo "Femídia CRM", ignorando o `APP_NAME` que o
   instalador vende como marca de toda a interface.~~ **RESOLVIDO em 2026-08-14** — virou o
   caso `M4` da jornada de marca própria (no fim deste arquivo). E a justificativa que estava
   aqui era **falsa em duas metades**: o problema não era "o nome fixo aparece no celular do
@@ -790,7 +790,7 @@ curl -s -o /dev/null -w '%{http_code}\n' https://<DOMAIN>/
 
 | # | Caso | O que conferir | Como |
 |---|---|---|---|
-| `J10.1` | **Aba** — quem abre o domínio vê o nome do revendedor | O `<title>` contém `Vendas Turbo` e **não** contém `Deskcomm` | `curl -s https://<DOMAIN>/login \| grep -o '<title>[^<]*</title>'` |
+| `J10.1` | **Aba** — quem abre o domínio vê o nome do revendedor | O `<title>` contém `Vendas Turbo` e **não** contém `Femídia` | `curl -s https://<DOMAIN>/login \| grep -o '<title>[^<]*</title>'` |
 | `J10.2` | **Ícone** — o favicon carrega **deslogado**, na cor do revendedor | `/icon` responde 200 e o SVG tem o accent DERIVADO (não a semente crua) | `curl -s -o /dev/null -w '%{http_code}\n' https://<DOMAIN>/icon` e abrir a aba no browser |
 | `J10.3` | **E-mail de acesso** — o "confirme sua conta" do GoTrue chega com a marca | Rodar `bash marca-emails.sh` e conferir na caixa real. **Sem `SUPABASE_ACCESS_TOKEN`, o script imprime o passo manual e a instalação segue** — esse ramo também é PASS, e é o caminho da maioria | caixa de entrada de verdade, não log |
 | `J10.4` | **Convite** — sem `RESEND_API_KEY`, a tela mostra o `accept_url` em vez de falhar calada | `/app/team/invite` → convidar → a tela exibe o link | pela tela |

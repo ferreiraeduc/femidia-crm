@@ -131,7 +131,7 @@ describe("nome do arquivo de códigos de recuperação", () => {
   it("deriva o prefixo da marca, sem acento e sem espaço", () => {
     expect(prefixoDoArquivo("Vendas Turbo")).toBe("vendas-turbo");
     expect(prefixoDoArquivo("Ótima Gestão")).toBe("otima-gestao");
-    expect(prefixoDoArquivo(DEFAULT_APP_NAME)).toBe("deskcommcrm");
+    expect(prefixoDoArquivo(DEFAULT_APP_NAME)).toBe("femidia-crm");
   });
 
   it("não devolve hífen pendurado nem repetido", () => {
@@ -153,9 +153,9 @@ describe("nome do arquivo de códigos de recuperação", () => {
  * A versão anterior deste gate ficava VERDE enquanto a marca vazava, por dois
  * furos independentes, e os dois só apareceram quando alguém foi olhar:
  *
- *  1. o padrão era `/Deskcomm/` — **case-sensitive**. Passavam
+ *  1. o padrão era `/Femídia/` — **case-sensitive**. Passavam
  *     `support@deskcomm.com.br` (tela de conta suspensa), `suporte@deskcomm.app`
- *     (tela de cobrança) e `deskcommcrm-recovery-codes.txt` (o arquivo que o
+ *     (tela de cobrança) e `femidia-crm-recovery-codes.txt` (o arquivo que o
  *     usuário baixa e guarda por anos). Endereço e nome de arquivo são
  *     minúsculos por natureza — ou seja, o gate era cego justamente na forma em
  *     que a marca de fato aparece;
@@ -174,7 +174,7 @@ describe("nome do arquivo de códigos de recuperação", () => {
  *
  * MARCA ≠ PROTOCOLO — a distinção que precisa estar escrita, não subentendida.
  * Boa parte das ocorrências abaixo NÃO é marca: é identificador técnico.
- * `X-Deskcomm-Signature` é contrato de fio com receptores de terceiros, o cookie
+ * `X-Femídia-Signature` é contrato de fio com receptores de terceiros, o cookie
  * `sb-deskcomm-auth` é a sessão de quem já está logado. Quem "completar o
  * whitelabel" renomeando isso derruba integração de cliente em produção — em
  * silêncio, porque o receptor não erra: ele apenas deixa de reconhecer. Por isso
@@ -243,7 +243,7 @@ const MARCA_CONGELADA: Record<string, EntradaDeMarca> = {
     categoria: "PROTOCOLO",
     motivo:
       "User-Agent exigido pela Nuvemshop, que identifica a aplicação registrada na plataforma deles. Trocar pelo nome do revendedor descreveria uma aplicação que não existe lá",
-    marcas: ["deskcommcrm"],
+    marcas: ["femidia-crm"],
   },
 
   // ─── INFRA — cookie/storage/contêiner. Renomear desloga ou perde estado. ───
@@ -294,20 +294,20 @@ const MARCA_CONGELADA: Record<string, EntradaDeMarca> = {
     fase: 7,
     motivo:
       "template sem caminho de produção: sem rota em app/api/v1/cron/, sem linha no docker/scheduler/entrypoint.sh e, desde a limpeza do teto de orçamento (0159), sem chamador NENHUM — o único era workers/ai-budget-checker.cron.ts, que foi apagado por nunca ter tido agendador. Marcar isto não muda nada que um usuário veja, e a única 'prova' possível seria invocar a função à mão — o que prova a função, não o produto. Sai quando o alarme ganhar cron de verdade (ou quando o template for apagado junto)",
-    marcas: ["deskcommcrm"],
+    marcas: ["femidia-crm"],
   },
 
   // ─── DEV — fixture de teste; não embarca. ───
   "lib/agent-engine/agent/draft-reply.test.ts": {
     categoria: "DEV",
-    motivo: "nome de agente numa fixture de teste ('Bot Deskcomm'); não sai da suíte",
+    motivo: "nome de agente numa fixture de teste ('Bot Femídia'); não sai da suíte",
     marcas: ["deskcomm"],
   },
   "lib/system/changelog.test.ts": {
     categoria: "DEV",
     motivo:
       "fixture que reproduz o CHANGELOG real, incluindo as URLs do repositório no GitHub. A marca aqui é o nome do repositório upstream, que o clone não renomeia",
-    marcas: ["deskcommcrm", "deskcommcrm", "deskcommcrm"],
+    marcas: ["femidia-crm", "femidia-crm", "femidia-crm"],
   },
 
   // ─── PADRAO — a marca padrão precisa existir em algum lugar. ───
@@ -315,7 +315,7 @@ const MARCA_CONGELADA: Record<string, EntradaDeMarca> = {
     categoria: "PADRAO",
     motivo:
       "é a DEFINIÇÃO de DEFAULT_APP_NAME — o valor que aparece quando o operador não configurou marca nenhuma. Se esta linha sumir, some o padrão",
-    marcas: ["deskcommcrm"],
+    marcas: ["femidia-crm"],
   },
 };
 
@@ -360,7 +360,7 @@ function marcasNoTexto(fonte: string): string[] {
     const inicio = linha.trimStart();
     if (inicio.startsWith("//") || inicio.startsWith("*") || inicio.startsWith("/*")) continue;
     for (const casada of linha.matchAll(/[\w@.-]*deskcomm[\w@.-]*/gi)) {
-      // Pontuação encostada (o ponto final de "no DeskcommCRM.") não faz parte
+      // Pontuação encostada (o ponto final de "no Femídia CRM.") não faz parte
       // do identificador e faria a lista mudar por causa de uma vírgula.
       achadas.push(casada[0].toLowerCase().replace(/^[.-]+/, "").replace(/[.-]+$/, ""));
     }
@@ -401,10 +401,10 @@ describe("catraca de marca hardcoded", () => {
   });
 
   it("pega a marca em qualquer caixa e dentro de identificador", () => {
-    // O furo nº 1 do gate antigo, agora com asserção: `/Deskcomm/` deixava passar
+    // O furo nº 1 do gate antigo, agora com asserção: `/Femídia/` deixava passar
     // as três formas de baixo, que são as formas em que a marca de fato aparece.
-    expect(marcasNoTexto(`a.download = "deskcommcrm-recovery-codes.txt";`)).toEqual([
-      "deskcommcrm-recovery-codes.txt",
+    expect(marcasNoTexto(`a.download = "femidia-crm-recovery-codes.txt";`)).toEqual([
+      "femidia-crm-recovery-codes.txt",
     ]);
     expect(marcasNoTexto(`href="mailto:suporte@deskcomm.app"`)).toEqual(["suporte@deskcomm.app"]);
     expect(marcasNoTexto(`const k = "sb-DESKCOMM-auth";`)).toEqual(["sb-deskcomm-auth"]);
@@ -413,10 +413,10 @@ describe("catraca de marca hardcoded", () => {
   it("ignora comentário, mas não confunde `//` de URL com comentário", () => {
     // A regra de comentário é uma exceção, e exceção sem guarda vira buraco:
     // procurar `//` em qualquer posição da linha esconderia justamente a URL.
-    expect(marcasNoTexto(`  // fala do DeskcommCRM`)).toEqual([]);
-    expect(marcasNoTexto(` * fala do DeskcommCRM`)).toEqual([]);
+    expect(marcasNoTexto(`  // fala do Femídia CRM`)).toEqual([]);
+    expect(marcasNoTexto(` * fala do Femídia CRM`)).toEqual([]);
     expect(marcasNoTexto(`const u = "https://deskcomm.app/x";`)).toEqual(["deskcomm.app"]);
-    expect(marcasNoTexto(`fetch(url); // manda pro DeskcommCRM`)).toEqual(["deskcommcrm"]);
+    expect(marcasNoTexto(`fetch(url); // manda pro Femídia CRM`)).toEqual(["femidia-crm"]);
   });
 
   it("nenhum arquivo fora da lista fixa a marca", () => {
@@ -501,7 +501,7 @@ describe("catraca de marca hardcoded", () => {
  * o código que embarca na imagem. Ela é cega para `supabase/templates/*.html` e
  * `supabase/config.toml`, e essa cegueira tinha consequência medida: dava para
  * zerar a lista de dívidas, ver a suíte inteira verde, e o cliente do
- * revendedor continuar recebendo "Confirme seu e-mail — DeskcommCRM" no
+ * revendedor continuar recebendo "Confirme seu e-mail — Femídia CRM" no
  * PRIMEIRO e-mail que ele abre na vida.
  *
  * Estes arquivos não são renderizados por nenhum TypeScript nosso: quem os
@@ -546,7 +546,7 @@ describe("catraca de marca no que o GoTrue renderiza", () => {
       categoria: "DEV",
       motivo:
         "config do Supabase LOCAL (o `supabase start` de dev e do CI). NÃO embarca na imagem e NÃO alcança clone nenhum: um self-hoster usa um projeto na nuvem do Supabase, cuja config de auth vem do marca-emails.sh, ou um GoTrue próprio, que lê env. `project_id` ainda nomeia os contêineres locais (supabase_auth_deskcomm-crm) e os assuntos são o que a suíte local envia",
-      marcas: ["deskcomm-crm", "deskcommcrm", "deskcommcrm"],
+      marcas: ["deskcomm-crm", "femidia-crm", "femidia-crm"],
     },
   };
 
@@ -572,22 +572,22 @@ describe("catraca de marca no que o GoTrue renderiza", () => {
   });
 
   it("comentário de HTML não conta, e `-->` no meio da linha não engole o resto", () => {
-    expect(marcasNoTexto(semComentariosHtml("<!-- fala do DeskcommCRM -->"))).toEqual([]);
-    expect(marcasNoTexto(semComentariosHtml("<!--\n  DeskcommCRM\n  em várias linhas\n-->"))).toEqual([]);
+    expect(marcasNoTexto(semComentariosHtml("<!-- fala do Femídia CRM -->"))).toEqual([]);
+    expect(marcasNoTexto(semComentariosHtml("<!--\n  Femídia CRM\n  em várias linhas\n-->"))).toEqual([]);
     // O caso que a regra de `//` erraria: marca REAL depois do fecho.
-    expect(marcasNoTexto(semComentariosHtml("<!-- nota --> Sua conta no DeskcommCRM"))).toEqual([
-      "deskcommcrm",
+    expect(marcasNoTexto(semComentariosHtml("<!-- nota --> Sua conta no Femídia CRM"))).toEqual([
+      "femidia-crm",
     ]);
     // E a marca fora de comentário nenhum continua contando.
-    expect(marcasNoTexto(semComentariosHtml("<p>conta no DeskcommCRM</p>"))).toEqual(["deskcommcrm"]);
+    expect(marcasNoTexto(semComentariosHtml("<p>conta no Femídia CRM</p>"))).toEqual(["femidia-crm"]);
   });
 
   it("comentário de TOML não conta, mas `#` dentro de string não vira comentário", () => {
-    expect(marcasNoTexto(semComentariosToml("# Supabase CLI config — DeskcommCRM"))).toEqual([]);
-    expect(marcasNoTexto(semComentariosToml('cor = "#506d48"  # DeskcommCRM'))).toEqual([
-      "deskcommcrm",
+    expect(marcasNoTexto(semComentariosToml("# Supabase CLI config — Femídia CRM"))).toEqual([]);
+    expect(marcasNoTexto(semComentariosToml('cor = "#506d48"  # Femídia CRM'))).toEqual([
+      "femidia-crm",
     ]);
-    expect(marcasNoTexto(semComentariosToml('subject = "Olá — DeskcommCRM"'))).toEqual(["deskcommcrm"]);
+    expect(marcasNoTexto(semComentariosToml('subject = "Olá — Femídia CRM"'))).toEqual(["femidia-crm"]);
   });
 
   it("nenhum arquivo do GoTrue fixa a marca fora da lista", () => {
@@ -613,7 +613,7 @@ describe("catraca de marca no que o GoTrue renderiza", () => {
 
   it("os dois modelos de e-mail não têm marca nenhuma — é o estado que se defende", () => {
     // Explícito, e não só implícito na ausência de linha na allowlist: é ESTE
-    // caso que falha quando alguém reescreve "no DeskcommCRM" num template.
+    // caso que falha quando alguém reescreve "no Femídia CRM" num template.
     expect(encontradoAqui.has("supabase/templates/confirmation.html")).toBe(false);
     expect(encontradoAqui.has("supabase/templates/recovery.html")).toBe(false);
   });

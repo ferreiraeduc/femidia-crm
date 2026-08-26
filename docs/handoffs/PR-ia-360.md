@@ -6,7 +6,7 @@
 
 ## O problema
 
-O DeskcommCRM tinha **um agente que sabia conversar e não sabia operar**. Medido na linha de
+O Femídia CRM tinha **um agente que sabia conversar e não sabia operar**. Medido na linha de
 base (`687716a`):
 
 | | |

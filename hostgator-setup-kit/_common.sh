@@ -56,8 +56,8 @@ nome_do_projeto_atual() {
 #
 # Duas cópias do repo na mesma VPS — o clone de produção e um de teste ao lado —
 # recebem o MESMO nome de projeto compose: o docker o deriva do basename do
-# diretório, e `/root/DeskcommCRM` e `/root/apagar6/DeskcommCRM` dão os dois
-# `deskcommcrm`. Os contêineres são UM conjunto só; os `.env` são dois. Cada
+# diretório, e `/root/Femídia CRM` e `/root/apagar6/Femídia CRM` dão os dois
+# `femidia-crm`. Os contêineres são UM conjunto só; os `.env` são dois. Cada
 # `up -d` recria o parque com as credenciais da SUA árvore, e a outra fica
 # falando com um transporte que não a reconhece mais.
 #
@@ -378,7 +378,7 @@ load_env() {
 # Vai pro diretório do projeto (onde está o compose) e carrega o .env.
 enter_project() {
   if [ -f "$COMPOSE" ]; then :;
-  elif [ -f "deskcommcrm/$COMPOSE" ]; then cd deskcommcrm;
+  elif [ -f "femidia-crm/$COMPOSE" ]; then cd femidia-crm;
   else die "Não achei $COMPOSE. Rode a partir da pasta do projeto."; fi
   [ -f .env ] || die "Falta o .env (rode install.sh primeiro)."
   load_env .env
@@ -426,10 +426,10 @@ psql_run() { docker run --rm -i postgres:17-alpine psql "$(url_do_schema)" -v ON
 # O namespace é constante e literal de propósito: ele está gravado no .env de
 # toda instalação viva, e derivá-lo de variável faria o kit antigo (que já está
 # no disco do cliente) e o novo montarem strings diferentes.
-IMG_NS="ghcr.io/melgarafael"
-IMG_APP="${IMG_NS}/deskcommcrm"
-IMG_WORKER="${IMG_NS}/deskcomm-worker"
-IMG_SCHEDULER="${IMG_NS}/deskcomm-scheduler"
+IMG_NS="ghcr.io/ferreiraeduc"
+IMG_APP="${IMG_NS}/femidia-crm"
+IMG_WORKER="${IMG_NS}/femidia-worker"
+IMG_SCHEDULER="${IMG_NS}/femidia-scheduler"
 
 # A última versão publicada (ex.: "1.2.1"), ou vazio se não deu para saber.
 #
@@ -443,7 +443,7 @@ IMG_SCHEDULER="${IMG_NS}/deskcomm-scheduler"
 # alguém porque não deu para resolver um número de versão seria trocar um
 # problema de previsibilidade por um de disponibilidade.
 ultima_versao_publicada() {
-  local url="${1:-https://github.com/melgarafael/DeskcommCRM.git}" ref
+  local url="${1:-https://github.com/ferreiraeduc/femidia-crm.git}" ref
   command -v git >/dev/null 2>&1 || return 0
   # `grep -v -- -` descarta PRERELEASE (v1.11.0-rc1, v1.1.1-jmpo.1 — esta última
   # existe de verdade neste repo). O `--sort=-v:refname` do git põe o prerelease
@@ -465,27 +465,27 @@ ultima_versao_publicada() {
 ghcr_status() {
   local img="$1" tag="$2" tok
   tok="$(curl -fsS --max-time 6 \
-          "https://ghcr.io/token?scope=repository:melgarafael/${img}:pull&service=ghcr.io" 2>/dev/null \
+          "https://ghcr.io/token?scope=repository:ferreiraeduc/${img}:pull&service=ghcr.io" 2>/dev/null \
         | sed -n 's/.*"token":"\([^"]*\)".*/\1/p')" || true
   if [ -z "$tok" ]; then printf '000'; return 0; fi
   curl -s -o /dev/null --max-time 6 -w '%{http_code}' \
     -H "Authorization: Bearer $tok" \
     -H 'Accept: application/vnd.oci.image.index.v1+json,application/vnd.docker.distribution.manifest.list.v2+json,application/vnd.docker.distribution.manifest.v2+json' \
-    "https://ghcr.io/v2/melgarafael/${img}/manifests/${tag}" 2>/dev/null || printf '000'
+    "https://ghcr.io/v2/ferreiraeduc/${img}/manifests/${tag}" 2>/dev/null || printf '000'
 }
 
 # As TRÊS imagens existem e são públicas nesta referência?
 #
-# Perguntar pelas três juntas, e não só pela do app, é o ponto: `deskcomm-worker`
-# e `deskcomm-scheduler` nasceram depois das releases que já existem, então
-# `deskcomm-worker:1.2.1` nunca vai existir — a v1.2.1 é passado. Pinar as três
+# Perguntar pelas três juntas, e não só pela do app, é o ponto: `femidia-worker`
+# e `femidia-scheduler` nasceram depois das releases que já existem, então
+# `femidia-worker:1.2.1` nunca vai existir — a v1.2.1 é passado. Pinar as três
 # numa versão sem conferir gravaria no .env do cliente duas referências
 # impossíveis, e o kit as construiria na VPS **em silêncio**, do topo da main:
 # app de uma release + worker/scheduler de outro código. Exatamente a mistura de
 # versões que a doutrina existe para proibir, no caminho de primeira impressão.
 trio_publicado() {
   local tag="$1" i
-  for i in deskcommcrm deskcomm-worker deskcomm-scheduler; do
+  for i in femidia-crm femidia-worker femidia-scheduler; do
     [ "$(ghcr_status "$i" "$tag")" = "200" ] || return 1
   done
   return 0
@@ -567,7 +567,7 @@ completar_pin_ausente() {  # completar_pin_ausente [envfile]
   # e o `.env` original chega intacto do outro lado, com as customizações.
   [ -w "$envfile" ] || return 0
 
-  for par in "WORKER_IMAGE:worker:deskcomm-worker" "SCHEDULER_IMAGE:scheduler:deskcomm-scheduler"; do
+  for par in "WORKER_IMAGE:worker:femidia-worker" "SCHEDULER_IMAGE:scheduler:femidia-scheduler"; do
     chave="${par%%:*}"; svc="$(printf '%s' "$par" | cut -d: -f2)"; repo="${par##*:}"
 
     # LACUNA apenas. Valor explícito (mesmo em canal móvel) é intocável.
@@ -724,7 +724,7 @@ setup_update_agent_cron() {
 
   # `cd` explícito: o agent.sh chama enter_project(), que acha o projeto pelo
   # DIRETÓRIO CORRENTE. No cron o CWD é o home do dono do crontab — sem o cd,
-  # a linha só funciona por acidente (instalação padrão em /root/deskcommcrm) e
+  # a linha só funciona por acidente (instalação padrão em /root/femidia-crm) e
   # morre calada a cada 5 minutos em qualquer REPO_DIR customizado ou /opt.
   # A assinatura legada inclui o PROJECT_DIR: é o que distingue a linha desta
   # instalação da linha de uma vizinha, que roda o mesmo agent.sh em outra pasta.

@@ -4,7 +4,7 @@ Todas as mudanças relevantes deste projeto são documentadas aqui.
 
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o versionamento segue [SemVer](https://semver.org/lang/pt-BR/).
 
-Se você roda o DeskcommCRM numa VPS, **leia a seção da versão para a qual está atualizando antes de rodar `bash update.sh`**. Mudanças que exigem ação manual aparecem sob **⚠️ Requer atenção**.
+Se você roda o Femídia CRM numa VPS, **leia a seção da versão para a qual está atualizando antes de rodar `bash update.sh`**. Mudanças que exigem ação manual aparecem sob **⚠️ Requer atenção**.
 
 ## [Não lançado]
 
@@ -609,7 +609,7 @@ servidor continuaria onde está. A segunda execução fixa tudo na mesma versão
 Para saber em que pé você está, sem mexer em nada:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/melgarafael/DeskcommCRM/main/hostgator-setup-kit/diagnostico.sh | bash
+curl -fsSL https://raw.githubusercontent.com/ferreiraeduc/femidia-crm/main/hostgator-setup-kit/diagnostico.sh | bash
 ```
 
 Ele só lê e explica — não escreve, não reinicia, não atualiza. Se disser que está afetada,
@@ -620,7 +620,7 @@ novas têm valor padrão e o próprio `update.sh` as acrescenta.
 
 ## [1.2.1] — 2026-08-12
 
-**Versão de segurança. Se você roda o DeskcommCRM numa VPS, atualize.**
+**Versão de segurança. Se você roda o Femídia CRM numa VPS, atualize.**
 
 Um usuário da comunidade auditou o código e mandou um relatório. Parte do que ele apontou já
 tinha sido corrigida nas versões seguintes à que ele analisou — mas **seis** problemas estavam
@@ -828,7 +828,7 @@ Depois disso, nunca mais é preciso o terminal.
 
 ## [1.0.0] — 2026-07-27
 
-Primeira versão marcada do DeskcommCRM. O projeto vinha sendo desenvolvido publicamente desde abril de 2026 sem tags; esta release estabelece o ponto a partir do qual toda mudança passa a ser versionada e descrita — porque quem hospeda o próprio sistema precisa saber o que muda antes de atualizar.
+Primeira versão marcada do Femídia CRM. O projeto vinha sendo desenvolvido publicamente desde abril de 2026 sem tags; esta release estabelece o ponto a partir do qual toda mudança passa a ser versionada e descrita — porque quem hospeda o próprio sistema precisa saber o que muda antes de atualizar.
 
 ### Plataforma
 
@@ -883,7 +883,7 @@ Primeira versão marcada do DeskcommCRM. O projeto vinha sendo desenvolvido publ
 - `hostgator-setup-kit`: instalação completa (app + WAHA + banco) com um comando.
 - `baseline.sql` idempotente e auto-curativo — atualização não quebra clone com dados legados.
 - 8 scripts de operação: `install`, `update`, `backup`, `restore`, `reset-password`, `reset-mfa`, `healthcheck` e o assistente de instalação em IA.
-- Imagem publicada em `ghcr.io/melgarafael/deskcommcrm` — a VPS não compila nada.
+- Imagem publicada em `ghcr.io/ferreiraeduc/femidia-crm` — a VPS não compila nada.
 
 ### Qualidade
 
@@ -895,12 +895,12 @@ Primeira versão marcada do DeskcommCRM. O projeto vinha sendo desenvolvido publ
 
 - **Node 22 é obrigatório para desenvolvimento.** A suíte de invariantes instancia o cliente do Supabase, que exige o `WebSocket` global — nativo apenas a partir do Node 22. Isso não afeta quem apenas hospeda: a VPS roda a imagem pronta.
 
-[Não lançado]: https://github.com/melgarafael/DeskcommCRM/compare/v1.5.0...HEAD
-[1.5.0]: https://github.com/melgarafael/DeskcommCRM/compare/v1.4.1...v1.5.0
-[1.4.1]: https://github.com/melgarafael/DeskcommCRM/compare/v1.4.0...v1.4.1
-[1.4.0]: https://github.com/melgarafael/DeskcommCRM/compare/v1.3.0...v1.4.0
-[1.3.0]: https://github.com/melgarafael/DeskcommCRM/compare/v1.2.1...v1.3.0
-[1.2.1]: https://github.com/melgarafael/DeskcommCRM/compare/v1.2.0...v1.2.1
-[1.2.0]: https://github.com/melgarafael/DeskcommCRM/compare/v1.1.0...v1.2.0
-[1.1.0]: https://github.com/melgarafael/DeskcommCRM/compare/v1.0.0...v1.1.0
-[1.0.0]: https://github.com/melgarafael/DeskcommCRM/releases/tag/v1.0.0
+[Não lançado]: https://github.com/ferreiraeduc/femidia-crm/compare/v1.5.0...HEAD
+[1.5.0]: https://github.com/ferreiraeduc/femidia-crm/compare/v1.4.1...v1.5.0
+[1.4.1]: https://github.com/ferreiraeduc/femidia-crm/compare/v1.4.0...v1.4.1
+[1.4.0]: https://github.com/ferreiraeduc/femidia-crm/compare/v1.3.0...v1.4.0
+[1.3.0]: https://github.com/ferreiraeduc/femidia-crm/compare/v1.2.1...v1.3.0
+[1.2.1]: https://github.com/ferreiraeduc/femidia-crm/compare/v1.2.0...v1.2.1
+[1.2.0]: https://github.com/ferreiraeduc/femidia-crm/compare/v1.1.0...v1.2.0
+[1.1.0]: https://github.com/ferreiraeduc/femidia-crm/compare/v1.0.0...v1.1.0
+[1.0.0]: https://github.com/ferreiraeduc/femidia-crm/releases/tag/v1.0.0

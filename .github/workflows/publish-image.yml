@@ -63,15 +63,15 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: deskcommcrm
+          - name: femidia-crm
             dockerfile: Dockerfile
-            title: DeskcommCRM
-          - name: deskcomm-worker
+            title: Femídia CRM
+          - name: femidia-worker
             dockerfile: Dockerfile.worker
-            title: DeskcommCRM worker
-          - name: deskcomm-scheduler
+            title: Femídia CRM worker
+          - name: femidia-scheduler
             dockerfile: Dockerfile.scheduler
-            title: DeskcommCRM scheduler
+            title: Femídia CRM scheduler
 
     steps:
       - uses: actions/checkout@v7
@@ -187,7 +187,7 @@ jobs:
             APP_VERSION=smoke
           # Mesmo escopo de cache do build-and-push: as camadas são idênticas,
           # então na prática este job reaproveita aquele build em vez de repeti-lo.
-          cache-from: type=gha,scope=deskcommcrm
+          cache-from: type=gha,scope=femidia-crm
 
       - name: O container chega a servir?
         run: |

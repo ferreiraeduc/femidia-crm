@@ -1,6 +1,6 @@
 ---
 type: index
-project: DeskcommCRM
+project: Femídia CRM
 status: draft
 last_updated: 2026-07-29
 generated_by: auditoria documental (Claude Code)
@@ -8,7 +8,7 @@ confidence: alta (inventário de arquivos é CONFIRMADO; agrupamento temático �
 audited_against: origin/main @ 789dfa6 (v1.0.0, 2026-07-27)
 ---
 
-# Índice da documentação — DeskcommCRM
+# Índice da documentação — Femídia CRM
 
 Mapa dos **154** arquivos `.md` de `docs/`, espalhados por **20** subpastas — medido em
 2026-08-14, com as réguas ao lado: `git ls-files 'docs/**/*.md' | wc -l` e

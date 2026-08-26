@@ -132,7 +132,7 @@ O teste para admitir um invariante novo: **é possível escrever a verificação
 
 ---
 
-# Aplicação de referência — DeskcommCRM
+# Aplicação de referência — Femídia CRM
 
 **Onde a lei é cobrada:**
 

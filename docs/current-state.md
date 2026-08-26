@@ -1,6 +1,6 @@
 ---
 type: current-state
-project: DeskcommCRM
+project: Femídia CRM
 status: draft
 last_updated: 2026-07-29
 generated_by: auditoria documental (Claude Code) — leitura de código, HANDOFFs, plan/, loop/, CI
@@ -8,7 +8,7 @@ confidence: média-alta (métricas de código são CONFIRMADO; estado de épico 
 audited_against: origin/main @ 789dfa6 (v1.0.0, 2026-07-29)
 ---
 
-# Estado atual — DeskcommCRM
+# Estado atual — Femídia CRM
 
 > # ⚠️ ESTE DOCUMENTO É UM RETRATO, NÃO O ESTADO DE HOJE
 >
@@ -28,7 +28,7 @@ audited_against: origin/main @ 789dfa6 (v1.0.0, 2026-07-29)
 > Precisa do estado de agora? Meça na fonte. Para o que este documento mais cita:
 >
 > ```bash
-> gh api repos/melgarafael/DeskcommCRM/branches/main/protection \
+> gh api repos/ferreiraeduc/femidia-crm/branches/main/protection \
 >   --jq '.required_status_checks.contexts'      # os checks obrigatórios
 > pnpm typecheck && pnpm lint && pnpm lint:channels && pnpm test:unit && pnpm test:shell
 > ```
@@ -157,7 +157,7 @@ instalação e **nenhum `update.sh` jamais o reconstruiu**. Correções do agent
 lugar nenhum. Enquanto isso, `CLAUDE.md` afirmava que "o caminho normal não constrói nada na
 VPS" — verdade para o app, falso para o produto.
 
-Resolvido publicando `deskcomm-worker` e `deskcomm-scheduler` como imagens, com gate em
+Resolvido publicando `femidia-worker` e `femidia-scheduler` como imagens, com gate em
 `tests/unit/packaging-artefato-do-cliente.test.ts`. Lei em
 [`doctrine/packaging.md`](doctrine/packaging.md); decisões em
 [`adr/0001-packaging-e-distribuicao.md`](adr/0001-packaging-e-distribuicao.md).

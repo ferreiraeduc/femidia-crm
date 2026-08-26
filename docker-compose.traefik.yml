@@ -1,4 +1,4 @@
-# DeskcommCRM — override para VPS que JÁ TEM um proxy reverso Traefik.
+# Femídia CRM — override para VPS que JÁ TEM um proxy reverso Traefik.
 #
 #   docker compose -f docker-compose.prod.yml -f docker-compose.traefik.yml up -d
 #
