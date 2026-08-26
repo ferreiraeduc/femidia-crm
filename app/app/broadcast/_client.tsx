@@ -30,14 +30,17 @@ function parseCSV(text: string): ParsedContact[] {
   const results: ParsedContact[] = [];
 
   for (let i = 0; i < lines.length; i++) {
-    const line = lines[i]!.trim();
+    const rawLine = lines[i];
+    if (!rawLine) continue;
+    const line = rawLine.trim();
     // Tenta extrair telefone de diferentes formatos:
     // só número, CSV com header, "nome;telefone", etc.
     const parts = line.split(/[;,]/);
     let phone = "";
 
     // Se tem header (primeira linha contém texto), pula
-    if (i === 0 && parts[0] && /[a-zA-ZÀ-ÿ]/.test(parts[0])) continue;
+    const firstCol = parts[0];
+    if (i === 0 && firstCol && /[a-zA-ZÀ-ÿ]/.test(firstCol)) continue;
 
     // Procura por algo que pareça telefone em qualquer coluna
     for (const part of parts) {
