@@ -14,6 +14,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import { audit } from "@/lib/audit";
 import { sincronizarSaudeDaConexao } from "@/lib/channels/health";
 import { aplicarEfeitosPosEntrada } from "@/lib/channels/pos-entrada";
+import { handleBroadcastReply } from "@/lib/broadcast/reply-trigger";
 import { estamparAtribuicaoDoContato } from "@/lib/leads/atribuicao-de-anuncio";
 import { extrairAtribuicaoWaha } from "@/lib/waha/atribuicao-de-anuncio";
 import type { createAdminClient } from "@/lib/supabase/admin";
@@ -578,6 +579,16 @@ async function handleInbound(
     requestId,
     origem: "waha_webhook",
   });
+
+  // ── Broadcast reply: se o lead respondeu a um disparo, envia contato da IA ──
+  if (parsed.phone) {
+    void handleBroadcastReply({
+      organizationId: session.organization_id,
+      phoneNumber: parsed.phone,
+      sessionName: session.waha_session_name,
+      chatId,
+    }).catch(() => {});  // fire-and-forget, nunca bloqueia inbound
+  }
 
   // ── POR QUE NÃO SE EMITE `message.received` AQUI ────────────────────────────
   //
