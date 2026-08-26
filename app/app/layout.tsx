@@ -49,6 +49,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       .eq("id", activeOrg.orgId)
       .maybeSingle();
     if (orgRow && !orgRow.onboarded_at) redirect("/onboarding");
+    if (orgRow?.status === "pending") redirect("/account-pending");
     if (orgRow?.status === "suspended") redirect("/account-suspended");
     // G4-02: expõe visibility_mode ao client (inbox decide visões visíveis).
     // Fonte confiável (admin client, org do cookie validado) — nunca do body.

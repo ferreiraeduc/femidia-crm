@@ -3,6 +3,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { SuspendDialog } from "./SuspendDialog";
 import { ReactivateDialog } from "./ReactivateDialog";
+import { ApproveDialog } from "./ApproveDialog";
+import { RejectDialog } from "./RejectDialog";
 import { ImpersonateButton } from "@/components/admin/ImpersonateButton";
 
 // ---------------------------------------------------------------------------
@@ -11,7 +13,7 @@ import { ImpersonateButton } from "@/components/admin/ImpersonateButton";
 
 interface TenantActionsProps {
   organizationId: string;
-  status: "active" | "suspended" | "redacted";
+  status: "active" | "suspended" | "redacted" | "pending" | "rejected";
   displayName: string;
 }
 
@@ -26,9 +28,13 @@ export function TenantActions({
 }: TenantActionsProps) {
   const [suspendOpen, setSuspendOpen] = useState(false);
   const [reactivateOpen, setReactivateOpen] = useState(false);
+  const [approveOpen, setApproveOpen] = useState(false);
+  const [rejectOpen, setRejectOpen] = useState(false);
 
   const canSuspend = status === "active";
   const isSuspended = status === "suspended";
+  const isPending = status === "pending";
+  const isRejected = status === "rejected";
   const isRedacted = status === "redacted";
 
   return (
@@ -38,13 +44,53 @@ export function TenantActions({
           Ações
         </h2>
 
+        {/* Pending: Approve / Reject */}
+        {isPending && (
+          <>
+            <Button
+              className="w-full"
+              variant="default"
+              onClick={() => setApproveOpen(true)}
+              aria-label="Aprovar tenant"
+            >
+              ✓ Aprovar tenant
+            </Button>
+            <Button
+              className="w-full"
+              variant="destructive"
+              onClick={() => setRejectOpen(true)}
+              aria-label="Rejeitar tenant"
+            >
+              Rejeitar
+            </Button>
+          </>
+        )}
+
+        {/* Rejected: Allow re-approval */}
+        {isRejected && (
+          <Button
+            className="w-full"
+            variant="default"
+            onClick={() => setApproveOpen(true)}
+            aria-label="Aprovar tenant rejeitado"
+          >
+            ✓ Aprovar (reverter rejeição)
+          </Button>
+        )}
+
         {/* Impersonate (S-11.07) */}
         <ImpersonateButton
           organizationId={organizationId}
           displayName={displayName}
-          disabled={isRedacted}
+          disabled={isRedacted || isPending || isRejected}
           disabledReason={
-            isRedacted ? "Tenant redigido — ação não disponível" : undefined
+            isRedacted
+              ? "Tenant redigido — ação não disponível"
+              : isPending
+                ? "Tenant pendente — aprove antes de impersonar"
+                : isRejected
+                  ? "Tenant rejeitado"
+                  : undefined
           }
         />
 
@@ -89,6 +135,20 @@ export function TenantActions({
         open={reactivateOpen}
         onClose={() => setReactivateOpen(false)}
         organizationId={organizationId}
+      />
+
+      <ApproveDialog
+        open={approveOpen}
+        onClose={() => setApproveOpen(false)}
+        organizationId={organizationId}
+        displayName={displayName}
+      />
+
+      <RejectDialog
+        open={rejectOpen}
+        onClose={() => setRejectOpen(false)}
+        organizationId={organizationId}
+        displayName={displayName}
       />
     </>
   );
