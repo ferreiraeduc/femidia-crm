@@ -23,6 +23,7 @@ import {
   ListChecks,
   Lock,
   Palette,
+  PaperPlaneTilt,
   Plugs,
   PlugsConnected,
   PuzzlePiece,

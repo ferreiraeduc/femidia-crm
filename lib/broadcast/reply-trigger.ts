@@ -16,8 +16,8 @@ export interface BroadcastReplyInput {
   organizationId: string;
   /** Telefone do lead que respondeu (normalizado, só dígitos). */
   phoneNumber: string;
-  /** waha_session_name de onde a mensagem chegou. */
-  sessionName: string;
+  /** ID da channel_session de onde a mensagem chegou. */
+  channelSessionId: string;
   /** chatId do lead (ex: 5511999999999@c.us). */
   chatId: string;
 }
@@ -27,7 +27,7 @@ export interface BroadcastReplyInput {
  * de contato da IA automaticamente. Retorna true se enviou, false se não.
  */
 export async function handleBroadcastReply(input: BroadcastReplyInput): Promise<boolean> {
-  const { organizationId, phoneNumber, sessionName, chatId } = input;
+  const { organizationId, phoneNumber, channelSessionId, chatId } = input;
 
   const admin = createAdminClient();
   const waha = getWahaClient();
@@ -65,14 +65,23 @@ export async function handleBroadcastReply(input: BroadcastReplyInput): Promise<
 
   if (!aiSession || !aiSession.phone_number) return false;
 
+  // Buscar o session name do canal por onde a mensagem entrou (pra enviar por ele)
+  const { data: inboundSession } = await admin
+    .from("channel_sessions")
+    .select("waha_session_name")
+    .eq("id", channelSessionId)
+    .single();
+
+  if (!inboundSession?.waha_session_name) return false;
+
   // Montar e enviar o cartão de contato da IA
   const contactPayload = wahaContactPayload(
-    aiSession.display_name || "Assistente IA",
-    aiSession.phone_number,
+    (aiSession.display_name as string) || "Assistente IA",
+    aiSession.phone_number as string,
   );
 
   try {
-    await waha.sendContactVcard(sessionName, chatId, [contactPayload]);
+    await waha.sendContactVcard(inboundSession.waha_session_name as string, chatId, [contactPayload]);
 
     // Marcar como respondido
     await admin

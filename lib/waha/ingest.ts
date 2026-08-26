@@ -585,7 +585,7 @@ async function handleInbound(
     void handleBroadcastReply({
       organizationId: session.organization_id,
       phoneNumber: parsed.phone,
-      sessionName: session.waha_session_name,
+      channelSessionId: session.id,
       chatId,
     }).catch(() => {});  // fire-and-forget, nunca bloqueia inbound
   }
