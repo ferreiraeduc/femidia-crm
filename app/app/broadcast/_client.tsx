@@ -100,7 +100,7 @@ export function BroadcastClient() {
   const { data: channels } = useQuery({
     queryKey: ["channels"],
     queryFn: async (): Promise<Channel[]> => {
-      const res = await fetch("/const res = await fetch("/api/v1/channel-sessions");");
+      const res = await fetch("/api/v1/channel-sessions");
       const json = await res.json();
       return json.data ?? [];
     },
