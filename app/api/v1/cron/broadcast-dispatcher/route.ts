@@ -47,8 +47,8 @@ function warmupCapForChannel(
 function verifyCronSecret(req: NextRequest): boolean {
   const auth = req.headers.get("authorization") ?? "";
   const token = auth.replace("Bearer ", "");
-  const expected = env.INTERNAL_CRON_SECRET || env.INTERNAL_SECRET;
-  return token === expected;
+  const accepted = [env.INTERNAL_CRON_SECRET, env.INTERNAL_SECRET].filter(Boolean);
+  return accepted.length > 0 && accepted.includes(token);
 }
 
 function sleep(ms: number): Promise<void> {
