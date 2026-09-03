@@ -341,6 +341,7 @@ export const AUDIT_ACTIONS = [
   // demais para a chamada seguinte do expurgo alcançar — a trilha registra
   // a própria erosão em vez de encolher sem deixar marca.
   "retention.sweep_run",
+  "bulk_broadcast.updated",
 ] as const;
 
 /** Um código de auditoria. Derivado de `AUDIT_ACTIONS` — não redigite a lista. */
