@@ -75,15 +75,18 @@ function parseCSV(text: string): ParsedContact[] {
 export function BroadcastClient() {
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [step, setStep] = useState<"list" | "create">("list");
+  const [step, setStep] = useState<"list" | "create" | "edit">("list");
+  const [editingId, setEditingId] = useState<string | null>(null);
+
+  // Criação
   const [name, setName] = useState("");
   const [variants, setVariants] = useState<string[]>([""]);
   const [selectedChannels, setSelectedChannels] = useState<string[]>([]);
   const [csvText, setCsvText] = useState("");
   const [parsedContacts, setParsedContacts] = useState<ParsedContact[]>([]);
   const [dailyLimit, setDailyLimit] = useState(100);
-  const [throttleMin, setThrottleMin] = useState(8);
-  const [throttleMax, setThrottleMax] = useState(20);
+  const [throttleMin, setThrottleMin] = useState(75);
+  const [throttleMax, setThrottleMax] = useState(121);
 
   // Listar broadcasts
   const { data: broadcasts, isLoading: loadingList } = useQuery({
@@ -93,7 +96,7 @@ export function BroadcastClient() {
       const json = await res.json();
       return json.data ?? [];
     },
-    refetchInterval: 10000, // Atualiza a cada 10s (progresso em tempo real)
+    refetchInterval: 10000,
   });
 
   // Listar canais WhatsApp
@@ -128,10 +131,52 @@ export function BroadcastClient() {
       return res.json();
     },
     onSuccess: () => {
-      toast.success("Campanha criada! Clique em Iniciar quando estiver pronto.");
+      toast.success("Campanha criada!");
       queryClient.invalidateQueries({ queryKey: ["broadcasts"] });
       setStep("list");
       resetForm();
+    },
+  });
+
+  // Editar broadcast
+  const editMutation = useMutation({
+    mutationFn: async (data: {
+      id: string;
+      name?: string;
+      message_text?: string;
+      message_variants?: string[];
+      daily_limit?: number;
+      throttle_min_ms?: number;
+      throttle_max_ms?: number;
+    }) => {
+      const { id, ...body } = data;
+      const res = await fetch(`/api/v1/bulk-broadcasts/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) throw new Error((await res.json()).error?.message ?? "Erro ao editar");
+      return res.json();
+    },
+    onSuccess: () => {
+      toast.success("Campanha atualizada!");
+      queryClient.invalidateQueries({ queryKey: ["broadcasts"] });
+      setStep("list");
+      resetForm();
+      setEditingId(null);
+    },
+  });
+
+  // Deletar broadcast
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch(`/api/v1/bulk-broadcasts/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error((await res.json()).error?.message ?? "Erro ao deletar");
+      return res.json();
+    },
+    onSuccess: () => {
+      toast.success("Campanha removida!");
+      queryClient.invalidateQueries({ queryKey: ["broadcasts"] });
     },
   });
 
@@ -180,8 +225,8 @@ export function BroadcastClient() {
     setCsvText("");
     setParsedContacts([]);
     setDailyLimit(100);
-    setThrottleMin(8);
-    setThrottleMax(20);
+    setThrottleMin(75);
+    setThrottleMax(121);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
@@ -197,11 +242,36 @@ export function BroadcastClient() {
 
     createMutation.mutate({
       name: name.trim(),
-      message_text: nonEmptyVariants[0]!, // primeira variação como fallback
+      message_text: nonEmptyVariants[0]!,
       message_variants: nonEmptyVariants,
-      channel_session_id: selectedChannels[0]!, // primeiro canal como fallback
+      channel_session_id: selectedChannels[0]!,
       channel_session_ids: selectedChannels,
       contacts: validContacts.map((c) => ({ phone_number: c.phone_number })),
+      daily_limit: dailyLimit,
+      throttle_min_ms: throttleMin * 1000,
+      throttle_max_ms: throttleMax * 1000,
+    });
+  };
+
+  const handleEdit = (bc: Broadcast) => {
+    setEditingId(bc.id);
+    setName(bc.name);
+    setVariants(bc.message_variants ?? [bc.message_text]);
+    setDailyLimit(bc.daily_limit);
+    setThrottleMin(bc.throttle_min_ms / 1000);
+    setThrottleMax(bc.throttle_max_ms / 1000);
+    setStep("edit");
+  };
+
+  const handleSaveEdit = () => {
+    if (!name.trim()) return toast.error("Dê um nome à campanha");
+    if (nonEmptyVariants.length === 0) return toast.error("Escreva pelo menos uma variação de mensagem");
+
+    editMutation.mutate({
+      id: editingId!,
+      name: name.trim(),
+      message_text: nonEmptyVariants[0]!,
+      message_variants: nonEmptyVariants,
       daily_limit: dailyLimit,
       throttle_min_ms: throttleMin * 1000,
       throttle_max_ms: throttleMax * 1000,
@@ -235,6 +305,91 @@ export function BroadcastClient() {
       default: return s;
     }
   };
+
+  // ── TELA DE EDIÇÃO ──────────────────────────────────────────────────────
+
+  if (step === "edit") {
+    return (
+      <div className="mx-auto max-w-3xl p-6">
+        <button onClick={() => { setStep("list"); resetForm(); setEditingId(null); }} className="mb-4 text-sm text-slate-500 hover:text-slate-700">
+          ← Voltar
+        </button>
+
+        <h1 className="text-2xl font-bold mb-2">Editar campanha</h1>
+        <p className="text-sm text-slate-500 mb-6">Modifique as configurações da campanha.</p>
+
+        {/* Nome */}
+        <div className="mb-6">
+          <label className="block text-sm font-medium mb-2">Nome da campanha</label>
+          <input type="text" value={name} onChange={(e) => setName(e.target.value)}
+            placeholder="Ex: Prospecção Clínicas - Agosto 2026"
+            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+        </div>
+
+        {/* Variações de mensagem */}
+        <div className="mb-6">
+          <label className="block text-sm font-medium mb-2">
+            Variações de mensagem ({nonEmptyVariants.length} ativa{nonEmptyVariants.length !== 1 ? "s" : ""})
+          </label>
+          {variants.map((v, i) => (
+            <div key={i} className="mb-3 relative">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-xs font-medium text-slate-500">Variação {i + 1}</span>
+                {variants.length > 1 && (
+                  <button onClick={() => setVariants(variants.filter((_, idx) => idx !== i))}
+                    className="text-xs text-red-400 hover:text-red-600">remover</button>
+                )}
+              </div>
+              <textarea value={v} onChange={(e) => { const nv = [...variants]; nv[i] = e.target.value; setVariants(nv); }}
+                rows={4} placeholder="Ex: Oi, tudo bem? Aqui é o Ruan da Femidia IA..."
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            </div>
+          ))}
+          <button onClick={() => setVariants([...variants, ""])}
+            className="text-sm text-indigo-600 hover:text-indigo-700 font-medium">
+            + Adicionar variação
+          </button>
+        </div>
+
+        {/* Configuração de ritmo */}
+        <div className="mb-6 rounded-lg border border-slate-200 bg-slate-50 p-4">
+          <h3 className="font-medium text-sm mb-3">⚙ Ritmo de envio (anti-ban)</h3>
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <label className="block text-xs text-slate-500 mb-1">Limite diário</label>
+              <input type="number" value={dailyLimit} onChange={(e) => setDailyLimit(Number(e.target.value))}
+                min={10} max={1000}
+                className="w-full rounded border border-slate-300 px-2 py-1.5 text-sm" />
+            </div>
+            <div>
+              <label className="block text-xs text-slate-500 mb-1">Timer mín (seg)</label>
+              <input type="number" value={throttleMin} onChange={(e) => setThrottleMin(Number(e.target.value))}
+                min={5} max={120}
+                className="w-full rounded border border-slate-300 px-2 py-1.5 text-sm" />
+            </div>
+            <div>
+              <label className="block text-xs text-slate-500 mb-1">Timer máx (seg)</label>
+              <input type="number" value={throttleMax} onChange={(e) => setThrottleMax(Number(e.target.value))}
+                min={10} max={150}
+                className="w-full rounded border border-slate-300 px-2 py-1.5 text-sm" />
+            </div>
+          </div>
+        </div>
+
+        {/* Botões */}
+        <div className="flex gap-3">
+          <button onClick={handleSaveEdit} disabled={editMutation.isPending}
+            className="rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50">
+            {editMutation.isPending ? "Salvando…" : "Salvar alterações"}
+          </button>
+          <button onClick={() => { setStep("list"); resetForm(); setEditingId(null); }}
+            className="rounded-lg border border-slate-300 px-5 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
+            Cancelar
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   // ── TELA DE CRIAÇÃO ──────────────────────────────────────────────────────
 
@@ -323,13 +478,13 @@ export function BroadcastClient() {
             <div>
               <label className="block text-xs text-slate-500 mb-1">Timer mín (seg)</label>
               <input type="number" value={throttleMin} onChange={(e) => setThrottleMin(Number(e.target.value))}
-                min={5} max={60}
+                min={5} max={120}
                 className="w-full rounded border border-slate-300 px-2 py-1.5 text-sm" />
             </div>
             <div>
               <label className="block text-xs text-slate-500 mb-1">Timer máx (seg)</label>
               <input type="number" value={throttleMax} onChange={(e) => setThrottleMax(Number(e.target.value))}
-                min={10} max={120}
+                min={10} max={150}
                 className="w-full rounded border border-slate-300 px-2 py-1.5 text-sm" />
             </div>
           </div>
@@ -374,7 +529,7 @@ export function BroadcastClient() {
   // ── TELA DE LISTAGEM + MÉTRICAS ──────────────────────────────────────────
 
   return (
-    <div className="mx-auto max-w-4xl p-6">
+    <div className="mx-auto max-w-5xl p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold">Disparo em massa</h1>
@@ -402,10 +557,10 @@ export function BroadcastClient() {
             const progress = bc.total_contacts > 0 ? ((bc.sent_count / bc.total_contacts) * 100).toFixed(0) : "0";
 
             return (
-              <div key={bc.id} className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+              <div key={bc.id} className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm hover:shadow-md transition-shadow">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-3">
-                  <div>
+                  <div className="flex-1">
                     <h3 className="font-semibold text-lg">{bc.name}</h3>
                     <p className="text-xs text-slate-500">
                       Criado em {new Date(bc.created_at).toLocaleDateString("pt-BR")}
@@ -448,7 +603,7 @@ export function BroadcastClient() {
                 </div>
 
                 {/* Info de ritmo */}
-                <div className="text-xs text-slate-400 mb-3">
+                <div className="text-xs text-slate-400 mb-4 py-2 border-t border-b border-slate-100">
                   {bc.sent_today ?? 0}/{bc.daily_limit ?? 100} hoje ·{" "}
                   Timer {(bc.throttle_min_ms ?? 8000) / 1000}–{(bc.throttle_max_ms ?? 20000) / 1000}s ·{" "}
                   {(bc.message_variants as string[] | null)?.length ?? 1} variações ·{" "}
@@ -458,14 +613,30 @@ export function BroadcastClient() {
                 {/* Ações */}
                 <div className="flex gap-2">
                   {(bc.status === "draft" || bc.status === "paused") && (
+                    <>
+                      <button onClick={() => handleEdit(bc)}
+                        className="rounded-lg bg-blue-100 px-4 py-2 text-xs font-medium text-blue-700 hover:bg-blue-200">
+                        ✏️ Editar
+                      </button>
+                      <button onClick={() => {
+                        if (confirm("Tem certeza que quer remover esta campanha?")) {
+                          deleteMutation.mutate(bc.id);
+                        }
+                      }} disabled={deleteMutation.isPending}
+                        className="rounded-lg bg-red-100 px-4 py-2 text-xs font-medium text-red-700 hover:bg-red-200 disabled:opacity-50">
+                        🗑️ Deletar
+                      </button>
+                    </>
+                  )}
+                  {(bc.status === "draft" || bc.status === "paused") && (
                     <button onClick={() => startMutation.mutate(bc.id)} disabled={startMutation.isPending}
-                      className="rounded-lg bg-emerald-600 px-4 py-2 text-xs font-medium text-white hover:bg-emerald-700 disabled:opacity-50">
-                      ▶ {bc.status === "paused" ? "Retomar" : "Iniciar disparo"}
+                      className="rounded-lg bg-emerald-600 px-4 py-2 text-xs font-medium text-white hover:bg-emerald-700 disabled:opacity-50 ml-auto">
+                      ▶ {bc.status === "paused" ? "Retomar" : "Iniciar"}
                     </button>
                   )}
                   {bc.status === "running" && (
                     <button onClick={() => pauseMutation.mutate(bc.id)} disabled={pauseMutation.isPending}
-                      className="rounded-lg bg-yellow-500 px-4 py-2 text-xs font-medium text-white hover:bg-yellow-600 disabled:opacity-50">
+                      className="rounded-lg bg-yellow-500 px-4 py-2 text-xs font-medium text-white hover:bg-yellow-600 disabled:opacity-50 ml-auto">
                       ⏸ Pausar
                     </button>
                   )}
