@@ -11,6 +11,18 @@
  *   O daily_limit da campanha é teto ADICIONAL — nunca supera o warm-up. Canal que
  *   bateu seu cap de hoje sai da rotação até a meia-noite local.
  *
+ * CLAIM ATÔMICO (migração 0178): a seleção de contatos pending e o incremento
+ * dos contadores de sent/failed passam pelas funções SQL
+ * `claim_pending_bulk_broadcast_contacts` e `increment_bulk_broadcast_counters`
+ * — cada uma faz em UM statement atômico o que antes era um SELECT + UPDATE (ou
+ * um "ler contador em JS e somar") separados. Isso existe porque medimos, em
+ * produção (03/09/2026), duas invocações concorrentes deste cron pegando o
+ * MESMO contato pending e mandando mensagem duplicada/triplicada — ver o
+ * cabeçalho da migração 0178 pra raiz completa. NÃO volte a fazer
+ * SELECT status=pending seguido de UPDATE separado, nem a computar
+ * sent_count em memória — a janela entre essas duas operações é exatamente o
+ * bug que foi corrigido aqui.
+ *
  * Auth: INTERNAL_CRON_SECRET.
  */
 import { NextRequest, NextResponse } from "next/server";
@@ -57,6 +69,26 @@ function sleep(ms: number): Promise<void> {
 
 function randomBetween(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+/**
+ * Incrementa sent/failed do broadcast via RPC atômica (migração 0178).
+ * Nunca lê/soma o contador em JS — ver comentário no topo do arquivo.
+ */
+async function bumpCounters(
+  admin: ReturnType<typeof createAdminClient>,
+  broadcastId: string,
+  sentDelta: number,
+  failedDelta: number,
+): Promise<void> {
+  const { error } = await admin.rpc("increment_bulk_broadcast_counters", {
+    p_broadcast_id: broadcastId,
+    p_sent_delta: sentDelta,
+    p_failed_delta: failedDelta,
+  });
+  if (error) {
+    console.error("[broadcast-dispatcher] falha ao incrementar contadores", broadcastId, error);
+  }
 }
 
 export async function POST(req: NextRequest): Promise<Response> {
@@ -174,21 +206,39 @@ export async function POST(req: NextRequest): Promise<Response> {
     // Com timer de 8-20s, em 55s de cron cabe ~3-6 mensagens
     const batchSize = Math.min(remaining, 6);
 
-    // Buscar contatos pending
-    const { data: contacts } = await admin
-      .from("bulk_broadcast_contacts")
-      .select("id, phone_number")
-      .eq("broadcast_id", bc.id)
-      .eq("status", "pending")
-      .limit(batchSize)
-      .order("created_at", { ascending: true });
+    // Reclamar contatos pending ATOMICAMENTE (claim_pending_bulk_broadcast_contacts,
+    // migração 0178). Antes disso era um SELECT status='pending' solto, seguido —
+    // dentro do loop abaixo, minutos depois — de um UPDATE separado pra 'queued'.
+    // Nessa janela, uma segunda invocação do cron via os MESMOS contatos como
+    // pending e mandava mensagem duplicada. A função faz SELECT FOR UPDATE SKIP
+    // LOCKED + UPDATE num único statement: quando ela devolve os contatos, eles já
+    // estão 'queued' no banco — nenhuma outra invocação volta a pegá-los.
+    const { data: contacts, error: claimError } = await admin.rpc(
+      "claim_pending_bulk_broadcast_contacts",
+      { p_broadcast_id: bc.id, p_limit: batchSize },
+    );
+
+    if (claimError) {
+      console.error("[broadcast-dispatcher] falha ao reclamar contatos pending", bc.id, claimError);
+      continue;
+    }
 
     if (!contacts || contacts.length === 0) {
-      // Todos enviados — marcar como completed
-      await admin
-        .from("bulk_broadcasts")
-        .update({ status: "completed", completed_at: new Date().toISOString() })
-        .eq("id", bc.id);
+      // Nada pra reclamar agora. Só marca completed se realmente não sobrou
+      // pending NEM queued — 'queued' pode ser outra invocação processando
+      // neste exato instante, não significa "campanha acabou".
+      const { count: remainingCount } = await admin
+        .from("bulk_broadcast_contacts")
+        .select("id", { count: "exact", head: true })
+        .eq("broadcast_id", bc.id)
+        .in("status", ["pending", "queued"]);
+
+      if ((remainingCount ?? 0) === 0) {
+        await admin
+          .from("bulk_broadcasts")
+          .update({ status: "completed", completed_at: new Date().toISOString() })
+          .eq("id", bc.id);
+      }
       continue;
     }
 
@@ -242,15 +292,13 @@ export async function POST(req: NextRequest): Promise<Response> {
           .update({ status: "failed", error_message: "phone_number_invalid" })
           .eq("id", contact.id);
         totalFailed++;
+        await bumpCounters(admin, bc.id, 0, 1);
         continue;
       }
 
       try {
-        // Marcar como queued
-        await admin
-          .from("bulk_broadcast_contacts")
-          .update({ status: "queued" })
-          .eq("id", contact.id);
+        // (Não precisa mais marcar "queued" aqui — o claim atômico acima já
+        // deixou o contato 'queued' antes de devolvê-lo.)
 
         // Enviar via WAHA
         await waha.sendMessage(
@@ -273,14 +321,15 @@ export async function POST(req: NextRequest): Promise<Response> {
         // Contabilizar envio deste chip hoje (pra respeitar warm-up dentro da rodada)
         channelSentToday.set(channel.id, (channelSentToday.get(channel.id) ?? 0) + 1);
 
-        // Incrementar contadores
-        await admin
-          .from("bulk_broadcasts")
-          .update({
-            sent_count: (bc.sent_count ?? 0) + totalSent + 1,
-            sent_today: (bc.sent_today ?? 0) + totalSent + 1,
-          })
-          .eq("id", bc.id);
+        // Incrementar contadores ATOMICAMENTE (increment_bulk_broadcast_counters,
+        // migração 0178). Antes: `sent_count: (bc.sent_count ?? 0) + totalSent + 1`
+        // — `bc.sent_count` era lido UMA VEZ no início da rodada e nunca mais
+        // atualizado do banco, então duas invocações concorrentes (ou até duas
+        // voltas deste mesmo loop) liam o mesmo valor de partida e uma escrita
+        // apagava a outra (lost update). MEDIDO: painel mostrava "7 Enviados"
+        // com 18 mensagens reais enviadas. O UPDATE atômico no Postgres serializa
+        // escritas concorrentes na mesma linha — não há mais essa perda.
+        await bumpCounters(admin, bc.id, 1, 0);
 
         totalSent++;
 
@@ -294,6 +343,9 @@ export async function POST(req: NextRequest): Promise<Response> {
           .update({ status: "failed", error_message: msg })
           .eq("id", contact.id);
         totalFailed++;
+        // failed_count nunca era persistido no banco antes (só a variável local
+        // totalFailed, que morre no fim da invocação) — agora é de verdade.
+        await bumpCounters(admin, bc.id, 0, 1);
       }
     }
   }
