@@ -127,7 +127,11 @@ export function BroadcastClient() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-      if (!res.ok) throw new Error((await res.json()).error?.message ?? "Erro ao criar");
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        const msg = errJson?.error?.message ?? errJson?.message ?? "Erro ao criar campanha";
+        throw new Error(msg);
+      }
       return res.json();
     },
     onSuccess: () => {
@@ -135,6 +139,9 @@ export function BroadcastClient() {
       queryClient.invalidateQueries({ queryKey: ["broadcasts"] });
       setStep("list");
       resetForm();
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || "Erro ao criar campanha");
     },
   });
 
@@ -155,7 +162,11 @@ export function BroadcastClient() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-      if (!res.ok) throw new Error((await res.json()).error?.message ?? "Erro ao editar");
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        const msg = errJson?.error?.message ?? errJson?.message ?? "Erro ao editar campanha";
+        throw new Error(msg);
+      }
       return res.json();
     },
     onSuccess: () => {
@@ -165,18 +176,27 @@ export function BroadcastClient() {
       resetForm();
       setEditingId(null);
     },
+    onError: (err: Error) => {
+      toast.error(err.message || "Erro ao editar campanha");
+    },
   });
 
   // Deletar broadcast
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
       const res = await fetch(`/api/v1/bulk-broadcasts/${id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error((await res.json()).error?.message ?? "Erro ao deletar");
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson?.error?.message ?? "Erro ao deletar");
+      }
       return res.json();
     },
     onSuccess: () => {
       toast.success("Campanha removida!");
       queryClient.invalidateQueries({ queryKey: ["broadcasts"] });
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || "Erro ao deletar campanha");
     },
   });
 
@@ -184,12 +204,18 @@ export function BroadcastClient() {
   const startMutation = useMutation({
     mutationFn: async (id: string) => {
       const res = await fetch(`/api/v1/bulk-broadcasts/${id}/start`, { method: "POST" });
-      if (!res.ok) throw new Error((await res.json()).error?.message ?? "Erro ao iniciar");
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson?.error?.message ?? "Erro ao iniciar");
+      }
       return res.json();
     },
     onSuccess: () => {
       toast.success("Disparo iniciado!");
       queryClient.invalidateQueries({ queryKey: ["broadcasts"] });
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || "Erro ao iniciar campanha");
     },
   });
 
@@ -197,12 +223,18 @@ export function BroadcastClient() {
   const pauseMutation = useMutation({
     mutationFn: async (id: string) => {
       const res = await fetch(`/api/v1/bulk-broadcasts/${id}/pause`, { method: "POST" });
-      if (!res.ok) throw new Error((await res.json()).error?.message ?? "Erro ao pausar");
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson?.error?.message ?? "Erro ao pausar");
+      }
       return res.json();
     },
     onSuccess: () => {
       toast.success("Campanha pausada.");
       queryClient.invalidateQueries({ queryKey: ["broadcasts"] });
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || "Erro ao pausar campanha");
     },
   });
 
@@ -240,6 +272,9 @@ export function BroadcastClient() {
     if (selectedChannels.length === 0) return toast.error("Selecione pelo menos um número de disparo");
     if (validContacts.length === 0) return toast.error("Nenhum contato válido no CSV");
 
+    const safeMin = Math.max(1, Math.min(throttleMin, throttleMax));
+    const safeMax = Math.max(safeMin, Math.max(throttleMin, throttleMax));
+
     createMutation.mutate({
       name: name.trim(),
       message_text: nonEmptyVariants[0]!,
@@ -247,9 +282,9 @@ export function BroadcastClient() {
       channel_session_id: selectedChannels[0]!,
       channel_session_ids: selectedChannels,
       contacts: validContacts.map((c) => ({ phone_number: c.phone_number })),
-      daily_limit: dailyLimit,
-      throttle_min_ms: throttleMin * 1000,
-      throttle_max_ms: throttleMax * 1000,
+      daily_limit: Math.max(1, dailyLimit),
+      throttle_min_ms: safeMin * 1000,
+      throttle_max_ms: safeMax * 1000,
     });
   };
 
@@ -267,14 +302,17 @@ export function BroadcastClient() {
     if (!name.trim()) return toast.error("Dê um nome à campanha");
     if (nonEmptyVariants.length === 0) return toast.error("Escreva pelo menos uma variação de mensagem");
 
+    const safeMin = Math.max(1, Math.min(throttleMin, throttleMax));
+    const safeMax = Math.max(safeMin, Math.max(throttleMin, throttleMax));
+
     editMutation.mutate({
       id: editingId!,
       name: name.trim(),
       message_text: nonEmptyVariants[0]!,
       message_variants: nonEmptyVariants,
-      daily_limit: dailyLimit,
-      throttle_min_ms: throttleMin * 1000,
-      throttle_max_ms: throttleMax * 1000,
+      daily_limit: Math.max(1, dailyLimit),
+      throttle_min_ms: safeMin * 1000,
+      throttle_max_ms: safeMax * 1000,
     });
   };
 
@@ -358,19 +396,19 @@ export function BroadcastClient() {
             <div>
               <label className="block text-xs text-slate-500 mb-1">Limite diário</label>
               <input type="number" value={dailyLimit} onChange={(e) => setDailyLimit(Number(e.target.value))}
-                min={10} max={1000}
+                min={1} max={50000}
                 className="w-full rounded border border-slate-300 px-2 py-1.5 text-sm" />
             </div>
             <div>
               <label className="block text-xs text-slate-500 mb-1">Timer mín (seg)</label>
               <input type="number" value={throttleMin} onChange={(e) => setThrottleMin(Number(e.target.value))}
-                min={5} max={120}
+                min={1} max={86400}
                 className="w-full rounded border border-slate-300 px-2 py-1.5 text-sm" />
             </div>
             <div>
               <label className="block text-xs text-slate-500 mb-1">Timer máx (seg)</label>
               <input type="number" value={throttleMax} onChange={(e) => setThrottleMax(Number(e.target.value))}
-                min={10} max={150}
+                min={1} max={86400}
                 className="w-full rounded border border-slate-300 px-2 py-1.5 text-sm" />
             </div>
           </div>
@@ -471,20 +509,20 @@ export function BroadcastClient() {
             <div>
               <label className="block text-xs text-slate-500 mb-1">Limite diário</label>
               <input type="number" value={dailyLimit} onChange={(e) => setDailyLimit(Number(e.target.value))}
-                min={10} max={1000}
+                min={1} max={50000}
                 className="w-full rounded border border-slate-300 px-2 py-1.5 text-sm" />
-              <p className="text-xs text-slate-400 mt-1">{Math.ceil(validContacts.length / dailyLimit)} dias pra terminar</p>
+              <p className="text-xs text-slate-400 mt-1">{Math.ceil(validContacts.length / Math.max(1, dailyLimit))} dias pra terminar</p>
             </div>
             <div>
               <label className="block text-xs text-slate-500 mb-1">Timer mín (seg)</label>
               <input type="number" value={throttleMin} onChange={(e) => setThrottleMin(Number(e.target.value))}
-                min={5} max={120}
+                min={1} max={86400}
                 className="w-full rounded border border-slate-300 px-2 py-1.5 text-sm" />
             </div>
             <div>
               <label className="block text-xs text-slate-500 mb-1">Timer máx (seg)</label>
               <input type="number" value={throttleMax} onChange={(e) => setThrottleMax(Number(e.target.value))}
-                min={10} max={150}
+                min={1} max={86400}
                 className="w-full rounded border border-slate-300 px-2 py-1.5 text-sm" />
             </div>
           </div>

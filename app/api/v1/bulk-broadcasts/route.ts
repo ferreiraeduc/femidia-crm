@@ -29,9 +29,9 @@ const createSchema = z.object({
   channel_session_id: z.string().uuid(),
   channel_session_ids: z.array(z.string().uuid()).min(1).max(10).optional(),
   contacts: z.array(contactSchema).min(1).max(50000),
-  daily_limit: z.number().int().min(10).max(5000).optional(),
-  throttle_min_ms: z.number().int().min(3000).max(60000).optional(),
-  throttle_max_ms: z.number().int().min(5000).max(120000).optional(),
+  daily_limit: z.number().int().min(1).max(50000).optional(),
+  throttle_min_ms: z.number().int().min(500).max(86400000).optional(),
+  throttle_max_ms: z.number().int().min(500).max(86400000).optional(),
 });
 
 // ── POST — Criar broadcast ──────────────────────────────────────────────────
@@ -75,6 +75,9 @@ export async function POST(req: NextRequest): Promise<Response> {
   }
 
   // Criar o broadcast
+  const safeThrottleMin = throttle_min_ms ?? 8000;
+  const safeThrottleMax = Math.max(throttle_max_ms ?? 20000, safeThrottleMin);
+
   const { data: broadcast, error: insErr } = await supabase
     .from("bulk_broadcasts")
     .insert({
@@ -87,8 +90,8 @@ export async function POST(req: NextRequest): Promise<Response> {
       total_contacts: contacts.length,
       created_by_user_id: user.id,
       daily_limit: daily_limit ?? 100,
-      throttle_min_ms: throttle_min_ms ?? 8000,
-      throttle_max_ms: throttle_max_ms ?? 20000,
+      throttle_min_ms: safeThrottleMin,
+      throttle_max_ms: safeThrottleMax,
     })
     .select("*")
     .single();

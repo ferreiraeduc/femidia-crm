@@ -24,9 +24,9 @@ const updateSchema = z.object({
   name: z.string().min(1).max(200).optional(),
   message_text: z.string().min(1).max(4096).optional(),
   message_variants: z.array(z.string().min(1).max(4096)).min(1).max(20).optional(),
-  daily_limit: z.number().int().min(10).max(5000).optional(),
-  throttle_min_ms: z.number().int().min(3000).max(60000).optional(),
-  throttle_max_ms: z.number().int().min(5000).max(120000).optional(),
+  daily_limit: z.number().int().min(1).max(50000).optional(),
+  throttle_min_ms: z.number().int().min(500).max(86400000).optional(),
+  throttle_max_ms: z.number().int().min(500).max(86400000).optional(),
 });
 
 export async function GET(
@@ -153,8 +153,16 @@ export async function PATCH(
   if (parsed.data.message_text !== undefined) updateData.message_text = parsed.data.message_text;
   if (parsed.data.message_variants !== undefined) updateData.message_variants = parsed.data.message_variants;
   if (parsed.data.daily_limit !== undefined) updateData.daily_limit = parsed.data.daily_limit;
-  if (parsed.data.throttle_min_ms !== undefined) updateData.throttle_min_ms = parsed.data.throttle_min_ms;
-  if (parsed.data.throttle_max_ms !== undefined) updateData.throttle_max_ms = parsed.data.throttle_max_ms;
+
+  if (parsed.data.throttle_min_ms !== undefined && parsed.data.throttle_max_ms !== undefined) {
+    const safeMin = parsed.data.throttle_min_ms;
+    const safeMax = Math.max(parsed.data.throttle_max_ms, safeMin);
+    updateData.throttle_min_ms = safeMin;
+    updateData.throttle_max_ms = safeMax;
+  } else {
+    if (parsed.data.throttle_min_ms !== undefined) updateData.throttle_min_ms = parsed.data.throttle_min_ms;
+    if (parsed.data.throttle_max_ms !== undefined) updateData.throttle_max_ms = parsed.data.throttle_max_ms;
+  }
 
   const { data: updated, error } = await supabase
     .from("bulk_broadcasts")
