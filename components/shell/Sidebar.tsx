@@ -104,7 +104,7 @@ export function SidebarContent({
           </span>
         )}
       </div>
-      <nav className="flex-1 space-y-3 overflow-y-auto p-2" aria-label="Navegação principal">
+      <nav className="flex-1 space-y-3 p-2" aria-label="Navegação principal">
         {grupos.map(({ group, items }) => {
           const tituloId = `nav-grupo-${group.id}`;
           return (
@@ -239,7 +239,7 @@ export function Sidebar({ collapsed }: { collapsed: boolean }) {
         //
         // `shrink-0` porque item de flex encolhe por padrão, e uma barra de 60
         // espremida para caber é o mesmo defeito por outro caminho.
-        "sticky top-0 z-30 flex h-screen shrink-0 flex-col border-r bg-card transition-[width] duration-200",
+        "sticky top-0 z-30 flex h-screen max-h-screen shrink-0 flex-col overflow-y-auto border-r bg-card transition-[width] duration-200",
         collapsed ? "w-16" : "w-60",
       )}
     >

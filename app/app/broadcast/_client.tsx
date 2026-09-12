@@ -592,7 +592,7 @@ export function BroadcastClient() {
         <div className="space-y-4">
           {broadcasts.map((bc) => {
             const responseRate = bc.sent_count > 0 ? ((bc.answered_count / bc.sent_count) * 100).toFixed(1) : "0.0";
-            const progress = bc.total_contacts > 0 ? ((bc.sent_count / bc.total_contacts) * 100).toFixed(0) : "0";
+            const progress = bc.total_contacts > 0 ? Math.min(100, ((bc.sent_count / bc.total_contacts) * 100)).toFixed(0) : "0";
 
             return (
               <div key={bc.id} className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm hover:shadow-md transition-shadow">
