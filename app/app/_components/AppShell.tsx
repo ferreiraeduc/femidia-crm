@@ -10,12 +10,19 @@ interface AppShellProps {
 
 export function AppShell({ sidebarCollapsed, children }: AppShellProps) {
   return (
-    <div className="flex w-full overflow-x-clip bg-background">
+    <div className="flex w-full bg-background">
       <Sidebar collapsed={sidebarCollapsed} />
-      <div className="flex min-h-screen min-w-0 flex-1 flex-col">
-        <TopBar />
-        <main className="flex-1 p-6">{children}</main>
-      </div>
+      {sidebarCollapsed ? (
+        <div className="flex min-h-screen min-w-0 flex-1 flex-col md:pl-16">
+          <TopBar />
+          <main className="flex-1 p-6">{children}</main>
+        </div>
+      ) : (
+        <div className="flex min-h-screen min-w-0 flex-1 flex-col md:pl-60">
+          <TopBar />
+          <main className="flex-1 p-6">{children}</main>
+        </div>
+      )}
     </div>
   );
 }
