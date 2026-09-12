@@ -595,7 +595,7 @@ export function BroadcastClient() {
             const progress = bc.total_contacts > 0 ? Math.min(100, ((bc.sent_count / bc.total_contacts) * 100)).toFixed(0) : "0";
 
             return (
-              <div key={bc.id} className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm hover:shadow-md transition-shadow">
+              <div key={bc.id} className="overflow-hidden rounded-lg border border-slate-200 bg-white p-5 shadow-sm hover:shadow-md transition-shadow">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex-1">
@@ -612,7 +612,7 @@ export function BroadcastClient() {
 
                 {/* Barra de progresso */}
                 <div className="w-full bg-slate-100 rounded-full h-2 mb-4">
-                  <div className="bg-indigo-500 h-2 rounded-full transition-all duration-500"
+                  <div className="bg-indigo-500 h-2 rounded-full transition-[width] duration-500"
                     style={{ width: `${progress}%` }} />
                 </div>
 
