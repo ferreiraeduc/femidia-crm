@@ -247,7 +247,7 @@ export function Sidebar({ collapsed }: { collapsed: boolean }) {
         // no `<main>` (AppShell) mantém o conteúdo na posição certa sem precisar
         // de uma segunda margem que possa divergir. `shrink-0` evita o encolhimento
         // padrão do flex; `border-r` mantém a linha divisória visível.
-        "fixed left-0 top-0 z-30 flex h-[100dvh] shrink-0 flex-col border-r bg-card transition-[width] duration-200",
+        "hidden md:block sticky top-0 z-30 flex h-[100dvh] shrink-0 flex-col border-r bg-card transition-[width] duration-200",
         collapsed ? "w-16" : "w-60",
       )}
     >
