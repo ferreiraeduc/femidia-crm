@@ -33,12 +33,9 @@ export function ConversationList({
   clientFilter,
   onVisibleChange,
 }: Props) {
-  // Só mostra POR ONDE a conversa entrou quando há mais de um número. Com um
-  // só, o rótulo seria a mesma palavra em toda linha — ruído que ensina o olho
-  // a ignorar a área onde vivem os avisos que importam.
-  //
-  // `?? []` e não `undefined`: enquanto a lista de canais carrega, o certo é
-  // NÃO mostrar. Mostrar e sumir depois é pior que aparecer um instante tarde.
+  // Cada conversa mostra o canal por onde entrou, com a cor que identifica o
+  // número. Mesmo com 1 canal: o badge discrimina o número visualmente, e ele
+  // é onde o usuário bate o olho quando mais de uma pessoa atende pelo app.
   const canais = useChannelSessions().data ?? [];
   const maisDeUmCanal = canais.length > 1;
 
@@ -128,7 +125,7 @@ export function ConversationList({
             isSelected={c.id === selectedId}
             onSelect={onSelect}
             queuePosition={isQueue ? i + 1 : undefined}
-            mostrarCanal={maisDeUmCanal}
+            mostrarCanal={canais.length > 0}
             mostrarAtendente={mostrarAtendente}
             automaticoDaOrg={automaticoDaOrg.data}
           />

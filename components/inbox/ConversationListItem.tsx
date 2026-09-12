@@ -9,6 +9,7 @@ import { comandoDaConversa } from "@/lib/inbox/comando-da-conversa";
 import { cn } from "@/lib/utils";
 import type { ConversationWithContact } from "@/hooks/inbox/useConversationsRealtime";
 import { rotuloDoContato } from "@/lib/contacts/rotulo-do-contato";
+import { channelColor } from "@/lib/channels/channelColor";
 
 interface Props {
   conversation: ConversationWithContact;
@@ -210,7 +211,12 @@ export function ConversationListItem({
           {mostrarCanal && rotuloCanal && (
             <Badge
               variant="outline"
-              className="h-4 gap-1 px-1.5 text-[10px] font-normal text-muted-foreground"
+              className={cn(
+                "h-4 gap-1 border px-1.5 text-[10px] font-normal",
+                channelColor(conversation.channel_session_id).bg,
+                channelColor(conversation.channel_session_id).border,
+                channelColor(conversation.channel_session_id).text,
+              )}
               title={`Entrou por ${rotuloCanal}`}
             >
               <Phone size={9} weight="regular" aria-hidden />
