@@ -23,20 +23,20 @@ export interface ChannelColor {
 }
 
 const PALETTE: ChannelColor[] = [
-  { bg: "bg-blue-50", border: "border-blue-500", text: "text-blue-700" },
-  { bg: "bg-emerald-50", border: "border-emerald-500", text: "text-emerald-700" },
-  { bg: "bg-violet-50", border: "border-violet-500", text: "text-violet-700" },
-  { bg: "bg-amber-50", border: "border-amber-500", text: "text-amber-700" },
-  { bg: "bg-rose-50", border: "border-rose-500", text: "text-rose-700" },
-  { bg: "bg-cyan-50", border: "border-cyan-500", text: "text-cyan-700" },
-  { bg: "bg-indigo-50", border: "border-indigo-500", text: "text-indigo-700" },
-  { bg: "bg-teal-50", border: "border-teal-500", text: "text-teal-700" },
+  { bg: "bg-blue-600", border: "border-blue-700", text: "text-white" },
+  { bg: "bg-emerald-600", border: "border-emerald-700", text: "text-white" },
+  { bg: "bg-violet-600", border: "border-violet-700", text: "text-white" },
+  { bg: "bg-amber-600", border: "border-amber-700", text: "text-white" },
+  { bg: "bg-rose-600", border: "border-rose-700", text: "text-white" },
+  { bg: "bg-cyan-600", border: "border-cyan-700", text: "text-white" },
+  { bg: "bg-indigo-600", border: "border-indigo-700", text: "text-white" },
+  { bg: "bg-teal-600", border: "border-teal-700", text: "text-white" },
 ];
 
 const FALLBACK: ChannelColor = {
-  bg: "bg-slate-50",
-  border: "border-slate-400",
-  text: "text-slate-700",
+  bg: "bg-slate-600",
+  border: "border-slate-700",
+  text: "text-white",
 };
 
 export function channelColor(channelId: string | null | undefined): ChannelColor {

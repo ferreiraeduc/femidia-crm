@@ -611,9 +611,8 @@ export function BroadcastClient() {
                 </div>
 
                 {/* Barra de progresso */}
-                <div className="w-full bg-slate-100 rounded-full h-2 mb-4">
-                  <div className="bg-indigo-500 h-2 rounded-full transition-[width] duration-500"
-                    style={{ width: `${progress}%` }} />
+                <div className="w-full overflow-hidden bg-slate-100 rounded-full h-2 mb-4">
+                  <div className="bg-indigo-500 h-2 rounded-full" style={{ width: `${progress}%`, minWidth: progress === "0" ? "0" : "2px" }} />
                 </div>
 
                 {/* Métricas */}
