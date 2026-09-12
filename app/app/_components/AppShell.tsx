@@ -33,7 +33,7 @@ export function AppShell({ sidebarCollapsed, children }: AppShellProps) {
         SEGUNDA medida da mesma coisa — a que discordava e deixava a barra por
         cima da lista.
       */}
-      <div className="flex min-h-screen min-w-0 flex-1 flex-col">
+      <div className={`flex min-h-screen min-w-0 flex-1 flex-col ${sidebarCollapsed ? "md:pl-16" : "md:pl-60"}`}>
         <TopBar />
         <main className="flex-1 p-6">{children}</main>
       </div>
