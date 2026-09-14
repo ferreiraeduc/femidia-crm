@@ -239,7 +239,7 @@ export function Sidebar({ collapsed }: { collapsed: boolean }) {
         //
         // `shrink-0` porque item de flex encolhe por padrão, e uma barra de 60
         // espremida para caber é o mesmo defeito por outro caminho.
-        "sticky top-0 z-30 flex h-[100dvh] min-h-0 shrink-0 flex-col overflow-y-auto overscroll-contain border-r bg-card transition-[width] duration-200",
+        "fixed left-0 top-0 z-30 flex h-[100dvh] shrink-0 flex-col overflow-y-auto overscroll-contain border-r bg-card transition-[width] duration-200",
         collapsed ? "w-16" : "w-60",
       )}
     >
