@@ -208,20 +208,23 @@ export function ConversationListItem({
           {mostrarAtendente && comando.quem === "humano" && (
             <OwnerBadge ownerKind="user" ownerName={comando.nome ?? "Atendente"} compacto />
           )}
-          {mostrarCanal && rotuloCanal && (
-            <Badge
-              className={cn(
-                "h-4 gap-1 px-1.5 text-[10px] font-normal",
-                channelColor(conversation.channel_session_id).bg,
-                channelColor(conversation.channel_session_id).border,
-                channelColor(conversation.channel_session_id).text,
-              )}
-              title={`Entrou por ${rotuloCanal}`}
-            >
-              <Phone size={9} weight="regular" aria-hidden />
-              {rotuloCanal}
-            </Badge>
-          )}
+          {mostrarCanal && rotuloCanal && (() => {
+            const cor = channelColor(conversation.channel_session_id);
+            return (
+              <span
+                className={cn(
+                  "inline-flex h-4 items-center gap-1 rounded-full border px-1.5 text-[10px] font-normal leading-none",
+                  cor.bg,
+                  cor.border,
+                  cor.text,
+                )}
+                title={`Entrou por ${rotuloCanal}`}
+              >
+                <Phone size={9} weight="regular" aria-hidden />
+                {rotuloCanal}
+              </span>
+            );
+          })()}
           {c?.is_blocked && (
             <Badge variant="destructive" className="h-4 px-1.5 text-[10px]">
               Bloqueado
