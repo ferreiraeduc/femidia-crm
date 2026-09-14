@@ -210,9 +210,8 @@ export function ConversationListItem({
           )}
           {mostrarCanal && rotuloCanal && (
             <Badge
-              variant="outline"
               className={cn(
-                "h-4 gap-1 border px-1.5 text-[10px] font-normal",
+                "h-4 gap-1 px-1.5 text-[10px] font-normal",
                 channelColor(conversation.channel_session_id).bg,
                 channelColor(conversation.channel_session_id).border,
                 channelColor(conversation.channel_session_id).text,

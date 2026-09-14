@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useContactList } from "@/hooks/contacts/useContactList";
+import { useContactsWithoutConversations } from "@/hooks/contacts/useContactsWithoutConversations";
 import { ContactsTable } from "@/components/contacts/ContactsTable";
 import { NewContactDialog } from "@/components/contacts/NewContactDialog";
 import { ImportContactsDialog } from "@/components/contacts/ImportContactsDialog";
@@ -40,6 +41,7 @@ export function ContactsListClient() {
   const [limit, setLimit] = useState<number>(25);
   const [createOpen, setCreateOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [hideWithConversation, setHideWithConversation] = useState(true); // true = mostra só sem conversa
 
   useEffect(() => {
     const t = setTimeout(() => setSearch(searchInput), 250);
@@ -50,7 +52,11 @@ export function ContactsListClient() {
     () => ({ search, tag, source, order_by: orderBy, order_dir: orderDir, limit }),
     [search, tag, source, orderBy, orderDir, limit],
   );
-  const q = useContactList(filters);
+
+  // Usa o hook correto dependendo do filtro
+  const q = hideWithConversation
+    ? useContactsWithoutConversations(filters)
+    : useContactList(filters);
 
   const allContacts = useMemo(
     () => q.data?.pages.flatMap((p) => p.data) ?? [],
@@ -149,6 +155,16 @@ export function ContactsListClient() {
             ))}
           </DropdownMenuContent>
         </DropdownMenu>
+
+        <label className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-1.5 text-sm cursor-pointer hover:bg-accent/10">
+          <input
+            type="checkbox"
+            checked={hideWithConversation}
+            onChange={(e) => setHideWithConversation(e.target.checked)}
+            className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+          />
+          <span className="text-muted-foreground">Sem conversa no Inbox</span>
+        </label>
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

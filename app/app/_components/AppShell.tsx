@@ -11,7 +11,7 @@ interface AppShellProps {
 export function AppShell({ sidebarCollapsed, children }: AppShellProps) {
   return (
     <div className="flex min-h-screen w-full bg-background">
-      <div className="hidden md:block">
+      <div className="hidden h-[100dvh] md:block">
         <Sidebar collapsed={sidebarCollapsed} />
       </div>
       {/*
