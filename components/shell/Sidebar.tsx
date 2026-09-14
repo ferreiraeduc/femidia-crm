@@ -104,7 +104,7 @@ export function SidebarContent({
           </span>
         )}
       </div>
-      <nav className="min-h-0 flex-1 space-y-3 p-2" aria-label="Navegação principal">
+      <nav className="min-h-0 flex-1 space-y-3 overflow-y-auto p-2" aria-label="Navegação principal">
         {grupos.map(({ group, items }) => {
           const tituloId = `nav-grupo-${group.id}`;
           return (
@@ -239,15 +239,7 @@ export function Sidebar({ collapsed }: { collapsed: boolean }) {
         //
         // `shrink-0` porque item de flex encolhe por padrão, e uma barra de 60
         // espremida para caber é o mesmo defeito por outro caminho.
-        // `fixed` em vez de `sticky` porque a sidebar PRECISA ficar 100%
-        // parada no canto esquerdo enquanto a página rola. Com `sticky` ela
-        // herda o overflow do pai em alguns layouts de flex, e o resultado
-        // prático é a barra SUBINDO junto com o conteúdo (visto em vários
-        // builds). O `fixed` sai do fluxo, mas a compensação com `padding-left`
-        // no `<main>` (AppShell) mantém o conteúdo na posição certa sem precisar
-        // de uma segunda margem que possa divergir. `shrink-0` evita o encolhimento
-        // padrão do flex; `border-r` mantém a linha divisória visível.
-        "hidden md:block fixed left-0 top-0 z-30 flex h-[100dvh] shrink-0 flex-col border-r bg-card transition-[width] duration-200",
+        "sticky top-0 z-30 flex h-[100dvh] shrink-0 flex-col overflow-y-auto overscroll-contain border-r bg-card transition-[width] duration-200",
         collapsed ? "w-16" : "w-60",
       )}
     >
