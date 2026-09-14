@@ -239,7 +239,11 @@ export function Sidebar({ collapsed }: { collapsed: boolean }) {
         //
         // `shrink-0` porque item de flex encolhe por padrão, e uma barra de 60
         // espremida para caber é o mesmo defeito por outro caminho.
-        "fixed left-0 top-0 z-30 flex h-[100dvh] shrink-0 flex-col overflow-y-auto overscroll-contain border-r bg-card transition-[width] duration-200",
+        // `hidden md:flex`: a barra é fixa (fixed) e saiu do fluxo, então ela
+        // mesma precisa se esconder no mobile — antes quem fazia isso era o
+        // wrapper `hidden md:block` no AppShell, que não existe mais. Sem isto
+        // a barra vira um overlay permanente cobrindo a tela do celular.
+        "fixed left-0 top-0 z-30 hidden h-[100dvh] shrink-0 flex-col overflow-y-auto overscroll-contain border-r bg-card transition-[width] duration-200 md:flex",
         collapsed ? "w-16" : "w-60",
       )}
     >
